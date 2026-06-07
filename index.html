@@ -932,8 +932,8 @@ canvas.addEventListener('dblclick', e=> e.preventDefault());
 function tryFire(){
   if(!state.running || state.paused || !state.player) return;
   if(state.player.cooldown>0) return;
-  state.player.cooldown = 0.28;
-  state.bullets.push({ x:state.player.x, y:state.player.y-30, vy:-560, r:4 });
+  state.player.cooldown = 0.22;
+  state.bullets.push({ x:state.player.x, y:state.player.y-30, vy:-600, r:4 });
   beep(880,0.05,0.04);
 }
 
@@ -991,10 +991,11 @@ function updateHUD(){
 // pican y disparan con más frecuencia.
 function difficulty(){
   return {
-    formSpeed: 22 + state.level*7,
-    diveChance: 0.004 + state.level*0.0016,
-    enemyBulletSpeed: 170 + state.level*16,
-    enemyFireChance: 0.003 + state.level*0.0012
+    formSpeed: 16 + state.level*6,
+    diveChance: 0.0008 + state.level*0.0010,
+    enemyBulletSpeed: 150 + state.level*14,
+    enemyFireChance: 0.0010 + state.level*0.0006,
+    maxDivers: 1 + Math.floor(state.level/2)   // picadas simultáneas máximas
   };
 }
 
@@ -1065,6 +1066,7 @@ function update(dt){
   // movimiento de la formación enemiga
   state.formationT += dt;
   const liveEnemies = state.enemies.filter(e=>e.alive);
+  let divers = liveEnemies.filter(e=>e.diving).length;   // picadas en curso
   // rebote de la formación al tocar los bordes
   let shift = state.formationDir * d.formSpeed * dt;
   let willHitEdge=false;
@@ -1082,11 +1084,12 @@ function update(dt){
       e.wobble += dt*2;
       e.x = e.baseX + Math.sin(e.wobble)*3;
       e.y = e.baseY + Math.sin(state.formationT*1.5 + e.col)*4;
-      // a veces inicia una picada hacia el jugador
-      if(Math.random() < d.diveChance && liveEnemies.length>0){
+      // a veces inicia una picada hacia el jugador (limitando las simultáneas)
+      if(divers < d.maxDivers && Math.random() < d.diveChance && liveEnemies.length>0){
         e.diving=true; e.divePhase=0;
         e.diveStartX=e.x; e.diveStartY=e.y;
         e.diveTargetX = p.x;
+        divers++;
       }
       // a veces dispara
       if(Math.random() < d.enemyFireChance){
