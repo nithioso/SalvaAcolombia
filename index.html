@@ -740,41 +740,73 @@ function drawGuerrero(x,y,r){
   ctx.restore();
 }
 
-// Catálogo de enemigos: nombre, función de dibujo, color y puntos
-// El campo "img" es el nombre base del archivo en assets/ (sin extensión).
-// Si existe una foto (png/jpg/jpeg/webp) se usa como sprite; si no, se
-// dibuja la ilustración de la función "draw".
+// Catálogo de enemigos. Para cada personaje:
+//   draw  : ilustración de respaldo dibujada en el lienzo
+//   img   : nombre base del archivo local opcional en assets/ (sin extensión)
+//   wiki  : título del artículo en Wikipedia (para traer la foto real)
+// Prioridad de la cara: foto local en assets/ → foto de Wikipedia → ilustración.
 const ENEMY_TYPES = [
-  { name:'Gustavo Petro',      draw:drawPetro,     color:'#d9a679', points:50, img:'assets/petro' },
-  { name:'Iván Cepeda',        draw:drawCepeda,    color:'#e0b389', points:40, img:'assets/cepeda' },
-  { name:'Francia Márquez',    draw:drawFrancia,   color:'#7a4a2b', points:40, img:'assets/francia' },
-  { name:'Roy Barreras',       draw:drawRoy,       color:'#dcab80', points:30, img:'assets/roy' },
-  { name:'Gustavo Bolívar',    draw:drawBolivar,   color:'#dca97c', points:30, img:'assets/bolivar' },
-  { name:'Armando Benedetti',  draw:drawBenedetti, color:'#d9a06f', points:30, img:'assets/benedetti' },
-  { name:'Aída Quilcué',       draw:drawQuilcue,   color:'#c98a55', points:30, img:'assets/quilcue' },
-  { name:'María José Pizarro', draw:drawPizarro,   color:'#e7bd93', points:30, img:'assets/pizarro' },
-  { name:'Laura Sarabia',      draw:drawSarabia,   color:'#ecc49a', points:30, img:'assets/sarabia' },
-  { name:'Juliana Guerrero',   draw:drawGuerrero,  color:'#e3b485', points:30, img:'assets/guerrero' }
+  { name:'Gustavo Petro',      draw:drawPetro,     color:'#d9a679', points:50, img:'assets/petro',     wiki:'Gustavo Petro' },
+  { name:'Iván Cepeda',        draw:drawCepeda,    color:'#e0b389', points:40, img:'assets/cepeda',    wiki:'Iván Cepeda' },
+  { name:'Francia Márquez',    draw:drawFrancia,   color:'#7a4a2b', points:40, img:'assets/francia',   wiki:'Francia Márquez' },
+  { name:'Roy Barreras',       draw:drawRoy,       color:'#dcab80', points:30, img:'assets/roy',       wiki:'Roy Barreras' },
+  { name:'Gustavo Bolívar',    draw:drawBolivar,   color:'#dca97c', points:30, img:'assets/bolivar',   wiki:'Gustavo Bolívar' },
+  { name:'Armando Benedetti',  draw:drawBenedetti, color:'#d9a06f', points:30, img:'assets/benedetti', wiki:'Armando Benedetti' },
+  { name:'Aída Quilcué',       draw:drawQuilcue,   color:'#c98a55', points:30, img:'assets/quilcue',   wiki:'Aída Quilcué' },
+  { name:'María José Pizarro', draw:drawPizarro,   color:'#e7bd93', points:30, img:'assets/pizarro',   wiki:'María José Pizarro' },
+  { name:'Laura Sarabia',      draw:drawSarabia,   color:'#ecc49a', points:30, img:'assets/sarabia',   wiki:'Laura Sarabia' },
+  { name:'Juliana Guerrero',   draw:drawGuerrero,  color:'#e3b485', points:30, img:'assets/guerrero',  wiki:'Juliana Guerrero' }
 ];
 
 // ========================================================
-//  SPRITES (fotos reales opcionales)
+//  SPRITES (fotos reales)
 // ========================================================
-// Carga una imagen probando varias extensiones. Devuelve un objeto con
-// "ready" que pasa a true cuando la foto está disponible. Si no existe
-// ningún archivo, "ready" queda en false y se usa la ilustración.
-function loadSprite(base){
+// Pide a Wikipedia la miniatura (foto) de un artículo. La petición la hace
+// el NAVEGADOR del jugador, así que funciona aunque haya restricciones de red
+// del lado del servidor. Wikimedia permite CORS con origin=*.
+function fetchWikiPhoto(title, cb){
+  if(!title || typeof fetch!=='function') return cb(null);
+  const langs=['es','en'];
+  (function attempt(i){
+    if(i>=langs.length) return cb(null);
+    const api='https://'+langs[i]+'.wikipedia.org/w/api.php'
+      +'?action=query&format=json&origin=*&redirects=1'
+      +'&prop=pageimages&piprop=thumbnail&pithumbsize=512'
+      +'&titles='+encodeURIComponent(title);
+    fetch(api).then(r=>r.json()).then(d=>{
+      const pages=(d.query&&d.query.pages)||{};
+      let src=null;
+      for(const k in pages){ if(pages[k].thumbnail&&pages[k].thumbnail.source) src=pages[k].thumbnail.source; }
+      if(src) cb(src); else attempt(i+1);
+    }).catch(()=>attempt(i+1));
+  })(0);
+}
+
+// Carga la cara de un personaje con respaldo en cascada:
+//   1) archivos locales en assets/ (png/jpg/jpeg/webp)
+//   2) foto real de Wikipedia
+//   3) (si todo falla) queda ready=false y se usa la ilustración
+function loadSprite(base, wikiTitle){
   const exts=['png','jpg','jpeg','webp'];
   const o={ ready:false, img:new Image() };
-  let i=0;
+  let i=0, triedWiki=false;
   o.img.onload =()=>{ if(o.img.naturalWidth>0) o.ready=true; };
-  o.img.onerror=()=>{ i++; if(i<exts.length) o.img.src=base+'.'+exts[i]; };
+  o.img.onerror=()=>{
+    i++;
+    if(i<exts.length){ o.img.src=base+'.'+exts[i]; return; }
+    if(!triedWiki){
+      triedWiki=true;
+      fetchWikiPhoto(wikiTitle, url=>{
+        if(url){ o.img.crossOrigin='anonymous'; o.img.src=url; }
+      });
+    }
+  };
   o.img.src=base+'.'+exts[0];
   return o;
 }
-// Foto del jugador (Abelardo) e índice de fotos de enemigos por nombre base
-const playerSprite = loadSprite('assets/abelardo');
-ENEMY_TYPES.forEach(t=>{ t.sprite = loadSprite(t.img); });
+// Foto del jugador (Abelardo) y fotos de cada enemigo
+const playerSprite = loadSprite('assets/abelardo', 'Abelardo de la Espriella');
+ENEMY_TYPES.forEach(t=>{ t.sprite = loadSprite(t.img, t.wiki); });
 
 // Dibuja una foto recortada en un círculo (estilo "ficha" redonda)
 function drawSprite(sprite, x, y, r){

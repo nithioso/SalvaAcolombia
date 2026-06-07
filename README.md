@@ -33,10 +33,12 @@ personajes del **Pacto Histórico** antes de que aterricen.
   Selección Colombia** (amarilla, con cuello tricolor y el número 10).
 - **Distintivo de villano:** cada enemigo lleva una insignia de **calavera** que
   los marca como antagonistas.
-- **Fotos reales opcionales:** puedes colocar fotos en la carpeta
-  [`assets/`](assets/README.md) y el juego las usará como sprites; si no hay
-  foto, dibuja la ilustración de respaldo. No se necesitan imágenes externas
-  para jugar.
+- **Fotos reales automáticas:** al abrir el juego, el navegador descarga la
+  **foto real** de cada personaje desde **Wikipedia** y la usa como sprite. Si
+  no hay conexión, se dibuja la ilustración de respaldo. También puedes colocar
+  tus propias fotos en [`assets/`](assets/README.md) para anular las de
+  Wikipedia. *(Las fotos provienen de Wikipedia/Wikimedia Commons y pertenecen
+  a sus respectivos autores y licencias.)*
 - **Personajes** (ilustraciones en `<canvas>` con sombreado, o tus fotos):
   - 🛡️ **Jugador:** Abelardo de la Espriella
   - 🎯 **Enemigos:** Gustavo Petro, Iván Cepeda, Francia Márquez, Roy Barreras,
@@ -59,3 +61,9 @@ pausa, colisiones, dibujado e interfaz.
 
 Al ser un solo archivo estático, puedes abrirlo localmente o publicarlo en
 cualquier hosting estático (GitHub Pages, Netlify, etc.) sin compilación.
+
+> 💡 Para que las **fotos reales** se carguen sin problemas, conviene servir el
+> juego por **http(s)** (GitHub Pages o un servidor local como
+> `python3 -m http.server`). Algunos navegadores bloquean peticiones de red al
+> abrir el archivo directamente con `file://`; en ese caso se verán las
+> ilustraciones de respaldo.

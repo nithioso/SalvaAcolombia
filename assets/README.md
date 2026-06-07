@@ -1,8 +1,17 @@
 # 📸 Fotos de los personajes (opcional)
 
-Coloca aquí las fotos para que el juego las use en lugar de las ilustraciones
-dibujadas. Si un archivo no existe, el juego usa automáticamente la caricatura
-de respaldo, así que **no es obligatorio** agregar fotos.
+> **El juego ya intenta cargar la foto real de cada personaje automáticamente
+> desde Wikipedia** (la descarga la hace tu navegador al abrir el juego). Esta
+> carpeta sirve solo para **anular** esa foto con una propia.
+
+Orden de prioridad para la cara de cada personaje:
+
+1. **Foto local** en esta carpeta (`assets/`), si existe.
+2. **Foto de Wikipedia** (automática).
+3. **Ilustración** dibujada en el lienzo (respaldo si no hay conexión).
+
+Por eso **no es obligatorio** agregar nada aquí; hazlo solo si quieres una foto
+distinta a la de Wikipedia o si vas a jugar sin conexión.
 
 ## Nombres de archivo
 
