@@ -1,12 +1,18 @@
-# 🛡️ SalvaAcolombia
+# 🇨🇴 SalvaAcolombia
 
 Juego de arcade tipo **Galaga** hecho con HTML, CSS y JavaScript puro (sin
 dependencias). Controlas a **Abelardo de la Espriella** y debes derribar a los
 personajes del **Pacto Histórico** antes de que aterricen.
 
+## ▶️ Jugar en línea
+
+**👉 https://gringoinc.github.io/Galaga1/**
+
+(También puedes abrir `index.html` localmente; ver la sección *Publicar*.)
+
 ## 🎮 Cómo jugar
 
-1. Abre el archivo `index.html` en cualquier navegador moderno.
+1. Entra al **enlace de arriba** (o abre `index.html` en un navegador moderno).
 2. Escribe tu **nombre** y pulsa **EMPEZAR**.
 3. Destruye a los enemigos y sobrevive el mayor número de niveles posible.
 
@@ -59,8 +65,12 @@ pausa, colisiones, dibujado e interfaz.
 
 ## 🚀 Publicar
 
-Al ser un solo archivo estático, puedes abrirlo localmente o publicarlo en
-cualquier hosting estático (GitHub Pages, Netlify, etc.) sin compilación.
+Este repositorio ya está publicado con **GitHub Pages** (Settings → Pages →
+*Deploy from a branch* → `main` / `root`), disponible en
+**https://gringoinc.github.io/Galaga1/**. Cada cambio en `main` se publica solo.
+
+Al ser un solo archivo estático, también puedes abrirlo localmente o publicarlo
+en cualquier hosting estático (Netlify, Vercel, etc.) sin compilación.
 
 > 💡 Para que las **fotos reales** se carguen sin problemas, conviene servir el
 > juego por **http(s)** (GitHub Pages o un servidor local como
