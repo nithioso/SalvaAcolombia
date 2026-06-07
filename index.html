@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#05060f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<title>🇨🇴 SalvaAcolombia — Abelardo contra El Pacto Histórico</title>
+<style>
+  :root{
+    --bg:#05060f;
+    --panel:#0d1024;
+    --accent:#ffcf33;
+    --accent2:#ff4d6d;
+    --good:#39d98a;
+    --text:#e8ecff;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;}
+  html{height:-webkit-fill-available;}
+  body{
+    background:radial-gradient(circle at 50% -10%, #1b2050 0%, var(--bg) 60%);
+    color:var(--text);
+    font-family:"Segoe UI",system-ui,Arial,sans-serif;
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;min-height:100dvh;min-height:-webkit-fill-available;
+    padding:12px;
+    overflow:hidden;
+    touch-action:none;
+    -webkit-user-select:none;user-select:none;
+    overscroll-behavior:none;
+    padding:max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+  #wrap{
+    width:480px;max-width:100%;
+    max-height:100%;
+    display:flex;flex-direction:column;
+    background:var(--panel);
+    border:1px solid #232a55;
+    border-radius:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.6);
+    overflow:hidden;
+    position:relative;
+  }
+  header{
+    padding:10px 16px;text-align:center;flex:0 0 auto;
+    background:linear-gradient(90deg,#161b3d,#0d1024);
+    border-bottom:1px solid #232a55;
+  }
+  header h1{margin:0;font-size:17px;letter-spacing:1px;color:var(--accent);}
+  header p{margin:3px 0 0;font-size:11px;opacity:.7;}
+  /* Barra con los colores y proporciones de la bandera de Colombia */
+  .flagbar{
+    height:8px;width:140px;margin:8px auto 0;border-radius:3px;
+    box-shadow:0 1px 4px rgba(0,0,0,.4);
+    background:linear-gradient(to bottom,
+      #ffd100 0 50%, #003893 50% 75%, #ce1126 75% 100%);
+  }
+  #stage{position:relative;flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;background:#02030a;}
+  canvas{
+    display:block;
+    width:100%;height:auto;
+    max-width:100%;max-height:100%;
+    aspect-ratio:480/600;
+    background:#02030a;touch-action:none;
+  }
+
+  /* Overlays */
+  .overlay{
+    position:absolute;inset:0;
+    background:rgba(5,6,15,.94);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:20px;z-index:5;
+    overflow-y:auto;-webkit-overflow-scrolling:touch;
+  }
+  .overlay.hidden{display:none;}
+  .overlay h2{margin:0 0 6px;font-size:clamp(18px,5vw,23px);color:var(--accent);}
+  .overlay p{margin:6px 0;font-size:13px;opacity:.85;line-height:1.5;}
+  input[type=text]{
+    margin-top:14px;padding:13px 14px;width:100%;max-width:280px;
+    border-radius:10px;border:1px solid #34407a;background:#0a0d22;color:#fff;
+    font-size:16px;text-align:center;outline:none;
+  }
+  input[type=text]:focus{border-color:var(--accent);}
+  button{
+    margin-top:14px;padding:14px 28px;border:none;border-radius:10px;
+    background:var(--accent);color:#1a1300;font-weight:700;font-size:16px;
+    cursor:pointer;letter-spacing:.5px;transition:transform .08s,filter .15s;
+    min-height:48px;touch-action:manipulation;
+  }
+  button:hover{filter:brightness(1.08);}
+  button:active{transform:scale(.96);}
+  button.secondary{background:#2a3060;color:#fff;min-height:40px;padding:10px 18px;font-size:13px;}
+
+  /* HUD */
+  #hud{
+    display:flex;justify-content:space-between;align-items:center;gap:6px;
+    padding:8px 12px;font-size:12px;background:#0a0d22;border-top:1px solid #232a55;
+    flex:0 0 auto;flex-wrap:wrap;
+  }
+  #hud .stat{white-space:nowrap;}
+  #hud .stat b{color:var(--accent);}
+  #lives span{color:var(--accent2);font-size:14px;}
+  #pauseBtn{
+    margin:0;padding:6px 12px;min-height:34px;font-size:13px;border-radius:8px;
+    background:#2a3060;color:#fff;
+  }
+  #pauseBtn.hidden{display:none;}
+
+  /* Touch / generic responsive tweaks */
+  @media (max-width:520px){
+    header h1{font-size:15px;}
+    header p{font-size:10px;}
+    #hud{font-size:11px;}
+  }
+  @media (max-height:560px){
+    header{padding:6px 12px;}
+    header p{display:none;}
+  }
+
+  /* Scoreboard */
+  .board{width:100%;max-width:300px;margin-top:10px;text-align:left;}
+  .board ol{margin:8px 0 0;padding-left:0;list-style:none;counter-reset:rank;}
+  .board li{
+    counter-increment:rank;
+    display:flex;justify-content:space-between;
+    padding:7px 12px;margin:5px 0;border-radius:8px;
+    background:#11152e;font-size:13px;
+  }
+  .board li::before{content:counter(rank)".";color:var(--accent);margin-right:8px;font-weight:700;}
+  .board li .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .board li .sc{color:var(--good);font-weight:700;margin-left:8px;}
+  .board li.me{outline:1px solid var(--accent);}
+  .board .empty{opacity:.5;font-size:12px;text-align:center;padding:10px;}
+  .controls-help{font-size:11px;opacity:.6;margin-top:14px;line-height:1.6;}
+  .tag{display:inline-block;background:#1c2350;border-radius:6px;padding:2px 7px;margin:2px;font-size:11px;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <header>
+    <h1>🇨🇴 SALVAACOLOMBIA 🛡️</h1>
+    <p>Abelardo de la Espriella contra El Pacto Histórico</p>
+    <div class="flagbar" aria-hidden="true"></div>
+  </header>
+
+  <div id="stage">
+    <canvas id="game" width="480" height="600"></canvas>
+
+    <!-- START / NAME -->
+    <div id="startScreen" class="overlay">
+      <h2>¡Bienvenido, comandante!</h2>
+      <p>Pilotas a <b style="color:#fff">Abelardo de la Espriella</b>.<br>
+         Derriba a los jefes del Pacto Histórico antes de que aterricen.</p>
+      <div>
+        <span class="tag">Petro</span><span class="tag">Iván Cepeda</span>
+        <span class="tag">Francia Márquez</span><span class="tag">Roy Barreras</span>
+        <span class="tag">Bolívar</span><span class="tag">Benedetti</span>
+        <span class="tag">Aída Quilcué</span><span class="tag">María José Pizarro</span>
+        <span class="tag">Laura Sarabia</span><span class="tag">Juliana Guerrero</span>
+      </div>
+      <input type="text" id="nameInput" maxlength="14" placeholder="Escribe tu nombre" autocomplete="off" enterkeyhint="go">
+      <button id="startBtn">EMPEZAR ▶</button>
+      <div class="controls-help">
+        📱 <b>Móvil:</b> desliza el dedo para mover. El disparo es automático.<br>
+        💻 <b>PC:</b> ⬅️ ➡️ mover &nbsp;•&nbsp; ESPACIO / clic = disparar &nbsp;•&nbsp; P = pausa
+      </div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div id="overScreen" class="overlay hidden">
+      <h2 id="overTitle">FIN DE LA PARTIDA</h2>
+      <p id="overMsg"></p>
+      <div class="board">
+        <strong style="color:var(--accent);font-size:13px;">🏆 TOP 5 PUNTAJES</strong>
+        <ol id="scoreList"></ol>
+      </div>
+      <button id="againBtn">JUGAR DE NUEVO 🔁</button>
+      <button id="resetBtn" class="secondary">Borrar récords</button>
+    </div>
+
+    <!-- PAUSE -->
+    <div id="pauseScreen" class="overlay hidden">
+      <h2>⏸️ PAUSA</h2>
+      <p>El juego está en pausa.</p>
+      <button id="resumeBtn">CONTINUAR ▶</button>
+      <button id="quitBtn" class="secondary">Salir al menú</button>
+    </div>
+  </div>
+
+  <div id="hud">
+    <div class="stat">👤 <b id="hPlayer">—</b></div>
+    <div class="stat">Nv <b id="hLevel">1</b></div>
+    <div class="stat">Pts <b id="hScore">0</b></div>
+    <div class="stat" id="lives"><span id="hLives">♥♥♥</span></div>
+    <button id="pauseBtn" class="hidden">⏸ Pausa</button>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   SALVAACOLOMBIA  —  Juego tipo Galaga
+   ---------------------------------------------------------------------
+   El jugador controla a Abelardo de la Espriella y debe derribar a los
+   personajes del Pacto Histórico (Petro, Iván Cepeda, Roy Barreras,
+   Gustavo Bolívar y María José Pizarro) antes de que aterricen.
+
+   Características:
+     • El jugador escribe su nombre antes de empezar.
+     • Se guardan los 5 mejores puntajes en el navegador (localStorage).
+     • La dificultad aumenta con cada nivel.
+     • Controles para PC (teclado) y móvil (táctil con disparo automático).
+
+   Todo el código está en un solo archivo, sin dependencias externas.
+   ===================================================================== */
+(function(){
+"use strict";
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+// Espacio de coordenadas lógico — toda la lógica usa estas medidas fijas.
+// El lienzo se escala según la densidad de píxeles del dispositivo para
+// verse nítido, mientras el CSS lo ajusta de forma responsiva a la pantalla.
+const W = 480, H = 600;
+function fitCanvas(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  canvas.width  = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+fitCanvas();
+window.addEventListener('resize', fitCanvas);
+window.addEventListener('orientationchange', ()=> setTimeout(fitCanvas, 200));
+
+// ---------- DOM ----------
+const startScreen = document.getElementById('startScreen');
+const overScreen  = document.getElementById('overScreen');
+const pauseScreen = document.getElementById('pauseScreen');
+const nameInput   = document.getElementById('nameInput');
+const startBtn    = document.getElementById('startBtn');
+const againBtn    = document.getElementById('againBtn');
+const resetBtn    = document.getElementById('resetBtn');
+const pauseBtn    = document.getElementById('pauseBtn');
+const resumeBtn   = document.getElementById('resumeBtn');
+const quitBtn     = document.getElementById('quitBtn');
+const scoreList   = document.getElementById('scoreList');
+const overTitle   = document.getElementById('overTitle');
+const overMsg     = document.getElementById('overMsg');
+const hPlayer = document.getElementById('hPlayer');
+const hLevel  = document.getElementById('hLevel');
+const hScore  = document.getElementById('hScore');
+const hLives  = document.getElementById('hLives');
+
+// ---------- Mejores puntajes (almacenados en localStorage) ----------
+const LS_KEY = 'salvaAColombia_top5';
+function loadScores(){
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
+  catch(e){ return []; }
+}
+// Guarda un puntaje, ordena de mayor a menor y conserva solo el Top 5
+function saveScore(name, score){
+  let list = loadScores();
+  list.push({ name: name, score: score, date: Date.now() });
+  list.sort((a,b)=> b.score - a.score);
+  list = list.slice(0,5);
+  try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch(e){}
+  return list;
+}
+// Pinta la lista del Top 5, resaltando el puntaje recién logrado
+function renderScores(highlightName, highlightScore){
+  const list = loadScores();
+  scoreList.innerHTML = '';
+  if(!list.length){
+    scoreList.innerHTML = '<div class="empty">Aún no hay puntajes. ¡Sé el primero!</div>';
+    return;
+  }
+  let highlighted = false;
+  list.forEach(e=>{
+    const li = document.createElement('li');
+    const isMe = !highlighted && e.name===highlightName && e.score===highlightScore;
+    if(isMe){ li.classList.add('me'); highlighted = true; }
+    li.innerHTML = '<span class="nm">'+escapeHtml(e.name)+'</span><span class="sc">'+e.score+'</span>';
+    scoreList.appendChild(li);
+  });
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ---------- Estado del juego ----------
+const state = {
+  running:false, playerName:'', score:0, level:1, lives:3,
+  player:null, bullets:[], enemyBullets:[], enemies:[], particles:[], stars:[],
+  keys:{}, fireCooldown:0, lastTime:0, formationDir:1, formationT:0,
+  spawnFlash:0, invuln:0, paused:false, autofire:false
+};
+
+// ---------- Campo de estrellas (fondo) ----------
+function initStars(){
+  state.stars = [];
+  for(let i=0;i<70;i++){
+    state.stars.push({ x:Math.random()*W, y:Math.random()*H, s:Math.random()*2+0.4, v:Math.random()*40+15 });
+  }
+}
+
+// ========================================================
+//  DIBUJO DE CARAS — caricaturas estilizadas en el lienzo
+// ========================================================
+// Cada cara dibuja una versión caricaturesca reconocible
+// usando rasgos distintivos (color de piel, pelo, gafas, barba).
+
+// Aclara (amt>0) u oscurece (amt<0) un color hex; amt en rango -1..1
+function shade(hex, amt){
+  const n=parseInt(hex.slice(1),16);
+  let r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+  const f = amt<0 ? 0 : 255, p = Math.abs(amt);
+  r=Math.round((f-r)*p)+r; g=Math.round((f-g)*p)+g; b=Math.round((f-b)*p)+b;
+  return 'rgb('+r+','+g+','+b+')';
+}
+
+// Dibuja el óvalo de la cara con un degradado radial que simula luz
+// (clara arriba-izquierda, sombra abajo-derecha) para dar volumen.
+function roundFace(x,y,r,skin){
+  const g=ctx.createRadialGradient(-r*0.3,-r*0.34,r*0.12, 0,0,r*1.3);
+  g.addColorStop(0,    shade(skin, 0.22));
+  g.addColorStop(0.55, skin);
+  g.addColorStop(1,    shade(skin,-0.30));
+  ctx.fillStyle=g;
+  ctx.beginPath();
+  ctx.ellipse(0,0,r*0.92,r,0,0,Math.PI*2);
+  ctx.fill();
+  // sombra suave bajo el mentón para más profundidad
+  ctx.fillStyle='rgba(0,0,0,0.07)';
+  ctx.beginPath();
+  ctx.ellipse(0,r*0.62,r*0.62,r*0.3,0,0,Math.PI*2);
+  ctx.fill();
+}
+
+// --- Abelardo (jugador): traje, pelo engominado, ceja seria ---
+function drawAbelardo(x,y,r){
+  ctx.save();
+  ctx.translate(x,y);
+  // camiseta de la Selección Colombia (cuerpo amarillo)
+  const jg=ctx.createLinearGradient(0,r*0.5,0,r*1.9);
+  jg.addColorStop(0,'#ffe14d'); jg.addColorStop(1,'#f6c500');
+  ctx.fillStyle=jg;
+  ctx.beginPath();
+  ctx.moveTo(-r*1.3, r*1.5);
+  ctx.quadraticCurveTo(0, r*0.5, r*1.3, r*1.5);
+  ctx.lineTo(r*1.3, r*1.9); ctx.lineTo(-r*1.3, r*1.9);
+  ctx.closePath(); ctx.fill();
+  // franjas tricolor en los hombros (azul + rojo)
+  ctx.fillStyle='#0033a0';
+  ctx.fillRect(-r*1.28, r*1.0, r*0.5, r*0.12);
+  ctx.fillRect( r*0.78, r*1.0, r*0.5, r*0.12);
+  ctx.fillStyle='#ce1126';
+  ctx.fillRect(-r*1.28, r*1.14, r*0.5, r*0.1);
+  ctx.fillRect( r*0.78, r*1.14, r*0.5, r*0.1);
+  // cuello en V azul con borde rojo
+  ctx.fillStyle='#0033a0';
+  ctx.beginPath();
+  ctx.moveTo(-r*0.42,r*0.72); ctx.lineTo(0,r*1.18); ctx.lineTo(r*0.42,r*0.72);
+  ctx.lineTo(r*0.3,r*0.7); ctx.lineTo(0,r*1.0); ctx.lineTo(-r*0.3,r*0.7);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='#ce1126'; ctx.lineWidth=r*0.05; ctx.lineJoin='round';
+  ctx.beginPath();
+  ctx.moveTo(-r*0.42,r*0.72); ctx.lineTo(0,r*1.18); ctx.lineTo(r*0.42,r*0.72); ctx.stroke();
+  // número 10 sobre el pecho
+  ctx.fillStyle='#0033a0';
+  ctx.font='bold '+(r*0.34)+'px Arial';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('10', 0, r*1.52);
+  // cara
+  roundFace(x,y,r,'#e8b48c');
+  // pelo engominado oscuro hacia atrás
+  ctx.fillStyle='#2a2118';
+  ctx.beginPath();
+  ctx.ellipse(0,-r*0.55,r*0.95,r*0.55,0,Math.PI,0);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(-r*0.9,-r*0.4); ctx.quadraticCurveTo(0,-r*1.1,r*0.9,-r*0.4);
+  ctx.quadraticCurveTo(0,-r*0.55,-r*0.9,-r*0.4); ctx.fill();
+  // cejas serias
+  ctx.strokeStyle='#2a2118'; ctx.lineWidth=r*0.12; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-r*0.55,-r*0.18); ctx.lineTo(-r*0.18,-r*0.1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.55,-r*0.18); ctx.lineTo(r*0.18,-r*0.1); ctx.stroke();
+  // ojos
+  ctx.fillStyle='#1a1a1a';
+  ctx.beginPath(); ctx.arc(-r*0.35,0,r*0.1,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.35,0,r*0.1,0,7); ctx.fill();
+  // nariz
+  ctx.strokeStyle='#c79066'; ctx.lineWidth=r*0.07;
+  ctx.beginPath(); ctx.moveTo(0,-r*0.05); ctx.lineTo(0,r*0.25); ctx.stroke();
+  // boca firme
+  ctx.strokeStyle='#7a4a3a'; ctx.lineWidth=r*0.08;
+  ctx.beginPath(); ctx.moveTo(-r*0.3,r*0.45); ctx.lineTo(r*0.3,r*0.45); ctx.stroke();
+  // barba candado leve
+  ctx.fillStyle='rgba(40,30,20,.5)';
+  ctx.beginPath(); ctx.arc(0,r*0.5,r*0.45,0.2,Math.PI-0.2); ctx.fill();
+  ctx.restore();
+}
+
+// Base común para los enemigos: hombros + óvalo de la cara
+function enemyBase(x,y,r,skin){
+  // cuerpo/hombros con un leve degradado
+  const g=ctx.createLinearGradient(0,r*0.6,0,r*1.8);
+  g.addColorStop(0,'#2c3550'); g.addColorStop(1,'#1a2030');
+  ctx.fillStyle=g;
+  ctx.beginPath();
+  ctx.moveTo(-r*1.2,r*1.5); ctx.quadraticCurveTo(0,r*0.6,r*1.2,r*1.5);
+  ctx.lineTo(r*1.2,r*1.8); ctx.lineTo(-r*1.2,r*1.8); ctx.closePath(); ctx.fill();
+  // cuello con sombra
+  ctx.fillStyle=shade(skin,-0.18);
+  ctx.beginPath(); ctx.ellipse(0,r*0.95,r*0.34,r*0.3,0,0,Math.PI*2); ctx.fill();
+  roundFace(x,y,r,skin);
+}
+
+// --- Petro: calvo arriba, pelo lateral cano, sin barba ---
+function drawPetro(x,y,r){
+  ctx.save(); ctx.translate(x,y);
+  enemyBase(x,y,r,'#d9a679');
+  // pelo lateral/atrás canoso
+  ctx.fillStyle='#9aa0a8';
+  ctx.beginPath(); ctx.ellipse(-r*0.8,-r*0.1,r*0.3,r*0.5,0,0,7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(r*0.8,-r*0.1,r*0.3,r*0.5,0,0,7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0,-r*0.7,r*0.7,r*0.32,0,Math.PI,0); ctx.fill();
+  // frente amplia (calvicie) — ya es la piel
+  // cejas
+  ctx.strokeStyle='#6b6f76'; ctx.lineWidth=r*0.1; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-r*0.5,-r*0.15); ctx.lineTo(-r*0.2,-r*0.18); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.5,-r*0.15); ctx.lineTo(r*0.2,-r*0.18); ctx.stroke();
+  // ojos
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(-r*0.32,0,r*0.09,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.32,0,r*0.09,0,7); ctx.fill();
+  // nariz
+  ctx.strokeStyle='#b07e54'; ctx.lineWidth=r*0.07;
+  ctx.beginPath(); ctx.moveTo(0,-r*0.05); ctx.lineTo(-r*0.05,r*0.25); ctx.stroke();
+  // boca
+  ctx.strokeStyle='#7a4030'; ctx.lineWidth=r*0.08;
+  ctx.beginPath(); ctx.arc(0,r*0.35,r*0.28,0.15,Math.PI-0.15); ctx.stroke();
+  ctx.restore();
+}
+
+// --- Iván Cepeda: gafas, barba/bigote canoso, pelo cano ---
+function drawCepeda(x,y,r){
+  ctx.save(); ctx.translate(x,y);
+  enemyBase(x,y,r,'#e0b389');
+  // pelo cano
+  ctx.fillStyle='#c9ccd2';
+  ctx.beginPath(); ctx.ellipse(0,-r*0.55,r*0.95,r*0.55,0,Math.PI,0); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-r*0.85,0,r*0.22,r*0.45,0,0,7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(r*0.85,0,r*0.22,r*0.45,0,0,7); ctx.fill();
+  // barba canosa
+  ctx.fillStyle='#d7dade';
+  ctx.beginPath(); ctx.arc(0,r*0.35,r*0.7,0.05,Math.PI-0.05); ctx.fill();
+  // gafas
+  ctx.strokeStyle='#2b2b2b'; ctx.lineWidth=r*0.07;
+  ctx.beginPath(); ctx.arc(-r*0.33,-r*0.02,r*0.22,0,7); ctx.stroke();
+  ctx.beginPath(); ctx.arc(r*0.33,-r*0.02,r*0.22,0,7); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-r*0.11,-r*0.02); ctx.lineTo(r*0.11,-r*0.02); ctx.stroke();
+  // ojos tras gafas
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(-r*0.33,-r*0.02,r*0.07,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.33,-r*0.02,r*0.07,0,7); ctx.fill();
+  // cejas
+  ctx.strokeStyle='#b9bcc2'; ctx.lineWidth=r*0.09; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-r*0.5,-r*0.3); ctx.lineTo(-r*0.16,-r*0.3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.5,-r*0.3); ctx.lineTo(r*0.16,-r*0.3); ctx.stroke();
+  // bigote
+  ctx.fillStyle='#d7dade';
+  ctx.beginPath(); ctx.ellipse(0,r*0.28,r*0.32,r*0.13,0,0,Math.PI); ctx.fill();
+  ctx.restore();
+}
+
+// --- Roy Barreras: pelo cano peinado, gafas finas, semblante ---
+function drawRoy(x,y,r){
+  ctx.save(); ctx.translate(x,y);
+  enemyBase(x,y,r,'#dcab80');
+  // pelo gris peinado a un lado
+  ctx.fillStyle='#b8bcc4';
+  ctx.beginPath(); ctx.moveTo(-r*0.95,-r*0.2);
+  ctx.quadraticCurveTo(-r*0.4,-r*1.05,r*0.95,-r*0.5);
+  ctx.quadraticCurveTo(r*0.3,-r*0.6,-r*0.95,-r*0.2); ctx.fill();
+  // gafas finas
+  ctx.strokeStyle='#3a3a3a'; ctx.lineWidth=r*0.05;
+  ctx.beginPath(); ctx.rect(-r*0.55,-r*0.12,r*0.4,r*0.3); ctx.stroke();
+  ctx.beginPath(); ctx.rect(r*0.15,-r*0.12,r*0.4,r*0.3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-r*0.15,0); ctx.lineTo(r*0.15,0); ctx.stroke();
+  // ojos
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(-r*0.35,r*0.03,r*0.08,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.35,r*0.03,r*0.08,0,7); ctx.fill();
+  // cejas
+  ctx.strokeStyle='#9a9ea6'; ctx.lineWidth=r*0.08; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-r*0.55,-r*0.22); ctx.lineTo(-r*0.18,-r*0.22); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.55,-r*0.22); ctx.lineTo(r*0.18,-r*0.22); ctx.stroke();
+  // nariz
+  ctx.strokeStyle='#b07e54'; ctx.lineWidth=r*0.07;
+  ctx.beginPath(); ctx.moveTo(0,r*0.05); ctx.lineTo(0,r*0.3); ctx.stroke();
+  // boca
+  ctx.strokeStyle='#7a4030'; ctx.lineWidth=r*0.08;
+  ctx.beginPath(); ctx.moveTo(-r*0.25,r*0.5); ctx.quadraticCurveTo(0,r*0.42,r*0.25,r*0.5); ctx.stroke();
+  ctx.restore();
+}
+
+// --- Gustavo Bolívar: pelo oscuro, barba candado oscura ---
+function drawBolivar(x,y,r){
+  ctx.save(); ctx.translate(x,y);
+  enemyBase(x,y,r,'#dca97c');
+  // pelo oscuro
+  ctx.fillStyle='#3a2f26';
+  ctx.beginPath(); ctx.ellipse(0,-r*0.55,r*0.95,r*0.58,0,Math.PI,0); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-r*0.85,-r*0.1,r*0.22,r*0.4,0,0,7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(r*0.85,-r*0.1,r*0.22,r*0.4,0,0,7); ctx.fill();
+  // barba oscura
+  ctx.fillStyle='#2f2620';
+  ctx.beginPath(); ctx.arc(0,r*0.4,r*0.72,0.1,Math.PI-0.1); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0,r*0.25,r*0.3,r*0.14,0,0,Math.PI); ctx.fill();
+  // ojos
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(-r*0.33,-r*0.02,r*0.09,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.33,-r*0.02,r*0.09,0,7); ctx.fill();
+  // cejas
+  ctx.strokeStyle='#2f2620'; ctx.lineWidth=r*0.1; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-r*0.5,-r*0.25); ctx.lineTo(-r*0.16,-r*0.22); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.5,-r*0.25); ctx.lineTo(r*0.16,-r*0.22); ctx.stroke();
+  // nariz
+  ctx.strokeStyle='#b07e54'; ctx.lineWidth=r*0.07;
+  ctx.beginPath(); ctx.moveTo(0,-r*0.02); ctx.lineTo(0,r*0.22); ctx.stroke();
+  ctx.restore();
+}
+
+// --- María José Pizarro: pelo largo oscuro, aretes ---
+function drawPizarro(x,y,r){
+  ctx.save(); ctx.translate(x,y);
+  // pelo largo detrás
+  ctx.fillStyle='#2b211c';
+  ctx.beginPath(); ctx.ellipse(0,r*0.2,r*1.15,r*1.25,0,0,Math.PI*2); ctx.fill();
+  enemyBase(x,y,r,'#e7bd93');
+  roundFace(x,y,r,'#e7bd93');
+  // flequillo
+  ctx.fillStyle='#2b211c';
+  ctx.beginPath(); ctx.moveTo(-r*0.95,-r*0.2);
+  ctx.quadraticCurveTo(0,-r*1.0,r*0.95,-r*0.2);
+  ctx.quadraticCurveTo(r*0.4,-r*0.45,0,-r*0.4);
+  ctx.quadraticCurveTo(-r*0.4,-r*0.45,-r*0.95,-r*0.2); ctx.fill();
+  // ojos
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(-r*0.32,0,r*0.1,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.32,0,r*0.1,0,7); ctx.fill();
+  // cejas
+  ctx.strokeStyle='#3a2d24'; ctx.lineWidth=r*0.07; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-r*0.48,-r*0.18); ctx.lineTo(-r*0.18,-r*0.2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.48,-r*0.18); ctx.lineTo(r*0.18,-r*0.2); ctx.stroke();
+  // labios
+  ctx.fillStyle='#c0392b';
+  ctx.beginPath(); ctx.ellipse(0,r*0.42,r*0.2,r*0.1,0,0,Math.PI*2); ctx.fill();
+  // aretes
+  ctx.fillStyle='#ffd700';
+  ctx.beginPath(); ctx.arc(-r*0.88,r*0.45,r*0.08,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.88,r*0.45,r*0.08,0,7); ctx.fill();
+  ctx.restore();
+}
+
+// --- Francia Márquez: turbante de colores, piel oscura ---
+function drawFrancia(x,y,r){
+  ctx.save(); ctx.translate(x,y);
+  enemyBase(x,y,r,'#7a4a2b');
+  // turbante envolviendo la cabeza
+  ctx.fillStyle='#e0982e';
+  ctx.beginPath(); ctx.ellipse(0,-r*0.55,r*1.05,r*0.7,0,Math.PI,0); ctx.fill();
+  ctx.fillStyle='#1f8a5b';
+  ctx.beginPath(); ctx.ellipse(0,-r*0.75,r*0.95,r*0.45,0,Math.PI,0); ctx.fill();
+  ctx.fillStyle='#c0392b';
+  ctx.beginPath(); ctx.ellipse(0,-r*0.95,r*0.7,r*0.3,0,Math.PI,0); ctx.fill();
+  // nudo lateral del turbante
+  ctx.fillStyle='#e0982e';
+  ctx.beginPath(); ctx.arc(r*0.85,-r*0.45,r*0.22,0,7); ctx.fill();
+  // ojos
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.arc(-r*0.32,0,r*0.13,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.32,0,r*0.13,0,7); ctx.fill();
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(-r*0.32,0,r*0.07,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.32,0,r*0.07,0,7); ctx.fill();
+  // cejas
+  ctx.strokeStyle='#2a1a10'; ctx.lineWidth=r*0.08; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-r*0.48,-r*0.2); ctx.lineTo(-r*0.16,-r*0.22); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.48,-r*0.2); ctx.lineTo(r*0.16,-r*0.22); ctx.stroke();
+  // nariz
+  ctx.strokeStyle='#5e3620'; ctx.lineWidth=r*0.07;
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,r*0.25); ctx.stroke();
+  // labios
+  ctx.fillStyle='#a0303a';
+  ctx.beginPath(); ctx.ellipse(0,r*0.45,r*0.22,r*0.1,0,0,Math.PI*2); ctx.fill();
+  // aretes grandes
+  ctx.strokeStyle='#ffd700'; ctx.lineWidth=r*0.06;
+  ctx.beginPath(); ctx.arc(-r*0.92,r*0.5,r*0.13,0,7); ctx.stroke();
+  ctx.beginPath(); ctx.arc(r*0.92,r*0.5,r*0.13,0,7); ctx.stroke();
+  ctx.restore();
+}
+
+// --- Aída Quilcué: lideresa indígena Nasa, sombrero y trenzas ---
+function drawQuilcue(x,y,r){
+  ctx.save(); ctx.translate(x,y);
+  // trenzas oscuras a los lados
+  ctx.fillStyle='#1c1410';
+  ctx.beginPath(); ctx.ellipse(-r*0.85,r*0.55,r*0.22,r*0.7,0,0,7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(r*0.85,r*0.55,r*0.22,r*0.7,0,0,7); ctx.fill();
+  enemyBase(x,y,r,'#c98a55');
+  // sombrero tradicional (ala + copa)
+  ctx.fillStyle='#3a2c1c';
+  ctx.beginPath(); ctx.ellipse(0,-r*0.55,r*1.25,r*0.3,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#4d3a24';
+  ctx.beginPath(); ctx.ellipse(0,-r*0.75,r*0.65,r*0.4,0,0,Math.PI*2); ctx.fill();
+  // cinta del sombrero
+  ctx.fillStyle='#c0392b';
+  ctx.fillRect(-r*0.65,-r*0.62,r*1.3,r*0.12);
+  // ojos
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(-r*0.3,0.05*r,r*0.09,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.3,0.05*r,r*0.09,0,7); ctx.fill();
+  // cejas
+  ctx.strokeStyle='#1c1410'; ctx.lineWidth=r*0.08; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-r*0.46,-r*0.13); ctx.lineTo(-r*0.16,-r*0.15); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.46,-r*0.13); ctx.lineTo(r*0.16,-r*0.15); ctx.stroke();
+  // nariz
+  ctx.strokeStyle='#9c6638'; ctx.lineWidth=r*0.07;
+  ctx.beginPath(); ctx.moveTo(0,r*0.02); ctx.lineTo(0,r*0.28); ctx.stroke();
+  // boca
+  ctx.strokeStyle='#7a4030'; ctx.lineWidth=r*0.08;
+  ctx.beginPath(); ctx.arc(0,r*0.4,r*0.22,0.2,Math.PI-0.2); ctx.stroke();
+  ctx.restore();
+}
+
+// --- Armando Benedetti: cara redonda, calvo, ceño marcado ---
+function drawBenedetti(x,y,r){
+  ctx.save(); ctx.translate(x,y);
+  enemyBase(x,y,r,'#d9a06f');
+  // poco pelo a los lados, entradas marcadas
+  ctx.fillStyle='#3a2d22';
+  ctx.beginPath(); ctx.ellipse(-r*0.78,-r*0.05,r*0.26,r*0.4,0,0,7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(r*0.78,-r*0.05,r*0.26,r*0.4,0,0,7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0,-r*0.78,r*0.5,r*0.22,0,Math.PI,0); ctx.fill();
+  // mejillas (cara redonda)
+  ctx.fillStyle='rgba(180,110,70,.25)';
+  ctx.beginPath(); ctx.arc(-r*0.5,r*0.3,r*0.22,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.5,r*0.3,r*0.22,0,7); ctx.fill();
+  // cejas pobladas y juntas
+  ctx.strokeStyle='#3a2d22'; ctx.lineWidth=r*0.12; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-r*0.5,-r*0.12); ctx.lineTo(-r*0.12,-r*0.05); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.5,-r*0.12); ctx.lineTo(r*0.12,-r*0.05); ctx.stroke();
+  // ojos
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(-r*0.3,r*0.05,r*0.09,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.3,r*0.05,r*0.09,0,7); ctx.fill();
+  // nariz ancha
+  ctx.strokeStyle='#a8744a'; ctx.lineWidth=r*0.08;
+  ctx.beginPath(); ctx.moveTo(0,r*0.05); ctx.lineTo(0,r*0.28); ctx.stroke();
+  // boca
+  ctx.strokeStyle='#7a4030'; ctx.lineWidth=r*0.08;
+  ctx.beginPath(); ctx.moveTo(-r*0.28,r*0.48); ctx.lineTo(r*0.28,r*0.48); ctx.stroke();
+  ctx.restore();
+}
+
+// --- Laura Sarabia: joven, pelo castaño liso con raya al medio ---
+function drawSarabia(x,y,r){
+  ctx.save(); ctx.translate(x,y);
+  // melena lisa larga
+  ctx.fillStyle='#4a3422';
+  ctx.beginPath(); ctx.ellipse(0,r*0.25,r*1.05,r*1.2,0,0,Math.PI*2); ctx.fill();
+  enemyBase(x,y,r,'#ecc49a');
+  roundFace(x,y,r,'#ecc49a');
+  // pelo con raya al medio cayendo a los lados
+  ctx.fillStyle='#4a3422';
+  ctx.beginPath();
+  ctx.moveTo(0,-r*0.95);
+  ctx.quadraticCurveTo(-r*1.05,-r*0.5,-r*0.92,r*0.2);
+  ctx.quadraticCurveTo(-r*0.6,-r*0.35,-r*0.05,-r*0.45);
+  ctx.quadraticCurveTo(0,-r*0.7,0,-r*0.95); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(0,-r*0.95);
+  ctx.quadraticCurveTo(r*1.05,-r*0.5,r*0.92,r*0.2);
+  ctx.quadraticCurveTo(r*0.6,-r*0.35,r*0.05,-r*0.45);
+  ctx.quadraticCurveTo(0,-r*0.7,0,-r*0.95); ctx.fill();
+  // ojos
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(-r*0.3,r*0.02,r*0.1,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.3,r*0.02,r*0.1,0,7); ctx.fill();
+  // cejas finas
+  ctx.strokeStyle='#5a4230'; ctx.lineWidth=r*0.06; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-r*0.45,-r*0.18); ctx.lineTo(-r*0.16,-r*0.2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.45,-r*0.18); ctx.lineTo(r*0.16,-r*0.2); ctx.stroke();
+  // nariz
+  ctx.strokeStyle='#c79066'; ctx.lineWidth=r*0.06;
+  ctx.beginPath(); ctx.moveTo(0,r*0.02); ctx.lineTo(0,r*0.24); ctx.stroke();
+  // labios
+  ctx.fillStyle='#c66';
+  ctx.beginPath(); ctx.ellipse(0,r*0.44,r*0.18,r*0.09,0,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+// --- Juliana Guerrero: joven, pelo oscuro recogido en cola alta ---
+function drawGuerrero(x,y,r){
+  ctx.save(); ctx.translate(x,y);
+  // cola de caballo alta detrás
+  ctx.fillStyle='#241a14';
+  ctx.beginPath(); ctx.ellipse(0,-r*0.85,r*0.35,r*0.45,0,0,7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(r*0.15,r*0.1,r*0.3,r*0.8,0.3,0,7); ctx.fill();
+  enemyBase(x,y,r,'#e3b485');
+  roundFace(x,y,r,'#e3b485');
+  // pelo recogido hacia atrás (frente despejada con raya)
+  ctx.fillStyle='#241a14';
+  ctx.beginPath();
+  ctx.moveTo(-r*0.95,-r*0.15);
+  ctx.quadraticCurveTo(0,-r*1.05,r*0.95,-r*0.15);
+  ctx.quadraticCurveTo(r*0.5,-r*0.55,0,-r*0.55);
+  ctx.quadraticCurveTo(-r*0.5,-r*0.55,-r*0.95,-r*0.15); ctx.fill();
+  // ojos
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(-r*0.3,r*0.02,r*0.1,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.3,r*0.02,r*0.1,0,7); ctx.fill();
+  // cejas
+  ctx.strokeStyle='#2e221a'; ctx.lineWidth=r*0.07; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-r*0.46,-r*0.18); ctx.lineTo(-r*0.16,-r*0.2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.46,-r*0.18); ctx.lineTo(r*0.16,-r*0.2); ctx.stroke();
+  // nariz
+  ctx.strokeStyle='#bf8a5c'; ctx.lineWidth=r*0.06;
+  ctx.beginPath(); ctx.moveTo(0,r*0.02); ctx.lineTo(0,r*0.24); ctx.stroke();
+  // labios
+  ctx.fillStyle='#cd5b6a';
+  ctx.beginPath(); ctx.ellipse(0,r*0.44,r*0.19,r*0.1,0,0,Math.PI*2); ctx.fill();
+  // aretes pequeños
+  ctx.fillStyle='#ffd700';
+  ctx.beginPath(); ctx.arc(-r*0.86,r*0.42,r*0.06,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.86,r*0.42,r*0.06,0,7); ctx.fill();
+  ctx.restore();
+}
+
+// Catálogo de enemigos. Para cada personaje:
+//   draw  : ilustración de respaldo dibujada en el lienzo
+//   img   : nombre base del archivo local opcional en assets/ (sin extensión)
+//   wiki  : título del artículo en Wikipedia (para traer la foto real)
+// Prioridad de la cara: foto local en assets/ → foto de Wikipedia → ilustración.
+const ENEMY_TYPES = [
+  { name:'Gustavo Petro',      draw:drawPetro,     color:'#d9a679', points:50, img:'assets/petro',     wiki:'Gustavo Petro' },
+  { name:'Iván Cepeda',        draw:drawCepeda,    color:'#e0b389', points:40, img:'assets/cepeda',    wiki:'Iván Cepeda' },
+  { name:'Francia Márquez',    draw:drawFrancia,   color:'#7a4a2b', points:40, img:'assets/francia',   wiki:'Francia Márquez' },
+  { name:'Roy Barreras',       draw:drawRoy,       color:'#dcab80', points:30, img:'assets/roy',       wiki:'Roy Barreras' },
+  { name:'Gustavo Bolívar',    draw:drawBolivar,   color:'#dca97c', points:30, img:'assets/bolivar',   wiki:'Gustavo Bolívar' },
+  { name:'Armando Benedetti',  draw:drawBenedetti, color:'#d9a06f', points:30, img:'assets/benedetti', wiki:'Armando Benedetti' },
+  { name:'Aída Quilcué',       draw:drawQuilcue,   color:'#c98a55', points:30, img:'assets/quilcue',   wiki:'Aída Quilcué' },
+  { name:'María José Pizarro', draw:drawPizarro,   color:'#e7bd93', points:30, img:'assets/pizarro',   wiki:'María José Pizarro' },
+  { name:'Laura Sarabia',      draw:drawSarabia,   color:'#ecc49a', points:30, img:'assets/sarabia',   wiki:'Laura Sarabia' },
+  { name:'Juliana Guerrero',   draw:drawGuerrero,  color:'#e3b485', points:30, img:'assets/guerrero',  wiki:'Juliana Guerrero' }
+];
+
+// ========================================================
+//  SPRITES (fotos reales)
+// ========================================================
+// Pide a Wikipedia la miniatura (foto) de un artículo. La petición la hace
+// el NAVEGADOR del jugador, así que funciona aunque haya restricciones de red
+// del lado del servidor. Wikimedia permite CORS con origin=*.
+function fetchWikiPhoto(title, cb){
+  if(!title || typeof fetch!=='function') return cb(null);
+  const langs=['es','en'];
+  (function attempt(i){
+    if(i>=langs.length) return cb(null);
+    const api='https://'+langs[i]+'.wikipedia.org/w/api.php'
+      +'?action=query&format=json&origin=*&redirects=1'
+      +'&prop=pageimages&piprop=thumbnail&pithumbsize=512'
+      +'&titles='+encodeURIComponent(title);
+    fetch(api).then(r=>r.json()).then(d=>{
+      const pages=(d.query&&d.query.pages)||{};
+      let src=null;
+      for(const k in pages){ if(pages[k].thumbnail&&pages[k].thumbnail.source) src=pages[k].thumbnail.source; }
+      if(src) cb(src); else attempt(i+1);
+    }).catch(()=>attempt(i+1));
+  })(0);
+}
+
+// Carga la cara de un personaje con respaldo en cascada:
+//   1) archivos locales en assets/ (png/jpg/jpeg/webp)
+//   2) foto real de Wikipedia
+//   3) (si todo falla) queda ready=false y se usa la ilustración
+function loadSprite(base, wikiTitle){
+  const exts=['png','jpg','jpeg','webp'];
+  const o={ ready:false, img:new Image() };
+  let i=0, triedWiki=false;
+  o.img.onload =()=>{ if(o.img.naturalWidth>0) o.ready=true; };
+  o.img.onerror=()=>{
+    i++;
+    if(i<exts.length){ o.img.src=base+'.'+exts[i]; return; }
+    if(!triedWiki){
+      triedWiki=true;
+      fetchWikiPhoto(wikiTitle, url=>{
+        if(url){ o.img.crossOrigin='anonymous'; o.img.src=url; }
+      });
+    }
+  };
+  o.img.src=base+'.'+exts[0];
+  return o;
+}
+// Foto del jugador (Abelardo) y fotos de cada enemigo
+const playerSprite = loadSprite('assets/abelardo', 'Abelardo de la Espriella');
+ENEMY_TYPES.forEach(t=>{ t.sprite = loadSprite(t.img, t.wiki); });
+
+// Dibuja una foto recortada en un círculo (estilo "ficha" redonda)
+function drawSprite(sprite, x, y, r){
+  const img=sprite.img;
+  const iw=img.naturalWidth, ih=img.naturalHeight;
+  if(!iw || !ih) return false;
+  const R=r*1.18, d=R*2;
+  const scale=Math.max(d/iw, d/ih);     // recorte tipo "cover"
+  const w=iw*scale, h=ih*scale;
+  ctx.save();
+  ctx.beginPath(); ctx.arc(x,y,R,0,Math.PI*2); ctx.closePath(); ctx.clip();
+  ctx.drawImage(img, x-w/2, y-h/2, w, h);
+  ctx.restore();
+  // borde sutil alrededor de la ficha
+  ctx.lineWidth=Math.max(1.5,r*0.08);
+  ctx.strokeStyle='rgba(255,255,255,0.45)';
+  ctx.beginPath(); ctx.arc(x,y,R,0,Math.PI*2); ctx.stroke();
+  return true;
+}
+// Pinta un personaje: usa la foto si está lista, si no la ilustración
+function paintFace(sprite, drawFn, x, y, r){
+  if(sprite && sprite.ready && drawSprite(sprite, x, y, r)) return;
+  drawFn(x, y, r);
+}
+
+// Distintivo de villano: una calavera en una insignia, en la esquina
+function drawSkullBadge(x, y, r){
+  const br=r*0.5, cx=x+r*0.78, cy=y-r*0.78, s=br*0.72;
+  ctx.save();
+  // fondo de la insignia con borde rojo
+  ctx.fillStyle='#11151f';
+  ctx.beginPath(); ctx.arc(cx,cy,br,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#c0392b'; ctx.lineWidth=br*0.14;
+  ctx.beginPath(); ctx.arc(cx,cy,br,0,Math.PI*2); ctx.stroke();
+  // cráneo (bóveda + mandíbula)
+  ctx.fillStyle='#f2f2f2';
+  ctx.beginPath();
+  ctx.arc(cx,cy-s*0.12,s*0.6,Math.PI,2*Math.PI);
+  ctx.lineTo(cx+s*0.5, cy+s*0.32);
+  ctx.lineTo(cx+s*0.22, cy+s*0.34);
+  ctx.lineTo(cx+s*0.16, cy+s*0.6);
+  ctx.lineTo(cx-s*0.16, cy+s*0.6);
+  ctx.lineTo(cx-s*0.22, cy+s*0.34);
+  ctx.lineTo(cx-s*0.5, cy+s*0.32);
+  ctx.closePath(); ctx.fill();
+  // cuencas de los ojos y nariz
+  ctx.fillStyle='#11151f';
+  ctx.beginPath(); ctx.arc(cx-s*0.24,cy-s*0.04,s*0.17,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+s*0.24,cy-s*0.04,s*0.17,0,7); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(cx,cy+s*0.06); ctx.lineTo(cx-s*0.09,cy+s*0.24);
+  ctx.lineTo(cx+s*0.09,cy+s*0.24); ctx.closePath(); ctx.fill();
+  // dientes
+  ctx.fillStyle='#f2f2f2';
+  ctx.fillRect(cx-s*0.2, cy+s*0.38, s*0.4, s*0.18);
+  ctx.strokeStyle='#11151f'; ctx.lineWidth=Math.max(0.5,s*0.06);
+  ctx.beginPath();
+  ctx.moveTo(cx, cy+s*0.38);          ctx.lineTo(cx, cy+s*0.56);
+  ctx.moveTo(cx-s*0.1, cy+s*0.38);    ctx.lineTo(cx-s*0.1, cy+s*0.56);
+  ctx.moveTo(cx+s*0.1, cy+s*0.38);    ctx.lineTo(cx+s*0.1, cy+s*0.56);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Pinta un enemigo (cara + distintivo de calavera de villano)
+function paintEnemy(type, x, y, r){
+  paintFace(type.sprite, type.draw, x, y, r);
+  drawSkullBadge(x, y, r);
+}
+
+// ========================================================
+//  ENTIDADES
+// ========================================================
+// Crea el barco del jugador (Abelardo) en la parte inferior
+function createPlayer(){
+  return { x:W/2, y:H-60, r:20, w:44, h:54, speed:320, cooldown:0 };
+}
+
+// Construye una oleada de enemigos en formación.
+// El número de filas crece con el nivel (hasta 6).
+function buildWave(level){
+  state.enemies = [];
+  const cols = 6;
+  const rows = Math.min(3 + Math.floor(level/2), 6);
+  const marginX = 56, gapX = (W-2*marginX)/(cols-1);
+  const startY = 70, gapY = 56;
+  for(let row=0; row<rows; row++){
+    for(let col=0; col<cols; col++){
+      // Las filas de arriba son los líderes (más difíciles)
+      let typeIdx;
+      if(row===0) typeIdx = 0;            // Petro
+      else if(row===1) typeIdx = 1;       // Cepeda
+      else typeIdx = 2 + ((col+row)% (ENEMY_TYPES.length-2)); // resto del Pacto
+      const t = ENEMY_TYPES[typeIdx];
+      state.enemies.push({
+        baseX: marginX + col*gapX,
+        baseY: startY + row*gapY,
+        x: marginX + col*gapX,
+        y: startY + row*gapY,
+        r: 18, type:t, alive:true,
+        col, row,
+        diving:false, divePhase:0, diveX:0, diveStartX:0, diveStartY:0,
+        hp: row===0 ? 2 : 1,
+        wobble: Math.random()*Math.PI*2
+      });
+    }
+  }
+  state.formationDir = 1;
+  state.formationT = 0;
+}
+
+// ========================================================
+//  ENTRADA (teclado, ratón y táctil)
+// ========================================================
+// --- Teclado (escritorio) ---
+window.addEventListener('keydown', e=>{
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key)) e.preventDefault();
+  state.keys[e.key]=true;
+  if(e.key===' ') tryFire();
+  // "P" o "Escape" alternan la pausa durante la partida
+  if((e.key==='p'||e.key==='P'||e.key==='Escape') && state.running){ togglePause(); }
+});
+window.addEventListener('keyup', e=>{ state.keys[e.key]=false; });
+
+// --- Puntero / táctil ---
+// El barco sigue el dedo horizontalmente y el disparo es automático
+// mientras se mantiene presionado. Convierte la coordenada del puntero
+// al sistema lógico del juego usando el tamaño real del lienzo en pantalla.
+let pointerActive=false;
+function canvasX(clientX){
+  const rect = canvas.getBoundingClientRect();
+  const x = (clientX-rect.left) * (W/rect.width);
+  return Math.max(0, Math.min(W, x));
+}
+canvas.addEventListener('pointerdown', e=>{
+  if(!state.running || state.paused) return;
+  e.preventDefault();
+  pointerActive=true;
+  state.autofire=true;                 // activa el disparo automático en móvil
+  if(state.player) state.player.x = canvasX(e.clientX);
+  if(canvas.setPointerCapture){ try{ canvas.setPointerCapture(e.pointerId); }catch(_){} }
+});
+canvas.addEventListener('pointermove', e=>{
+  if(!state.running || state.paused || !pointerActive) return;
+  e.preventDefault();
+  if(state.player) state.player.x = canvasX(e.clientX);
+});
+function endPointer(){ pointerActive=false; state.autofire=false; }
+window.addEventListener('pointerup', endPointer);
+window.addEventListener('pointercancel', endPointer);
+// Evita el menú contextual y el zoom por doble toque sobre el lienzo
+canvas.addEventListener('contextmenu', e=> e.preventDefault());
+canvas.addEventListener('dblclick', e=> e.preventDefault());
+
+// Dispara un proyectil del jugador respetando el tiempo de recarga
+function tryFire(){
+  if(!state.running || state.paused || !state.player) return;
+  if(state.player.cooldown>0) return;
+  state.player.cooldown = 0.22;
+  state.bullets.push({ x:state.player.x, y:state.player.y-30, vy:-600, r:4 });
+  beep(880,0.05,0.04);
+}
+
+// ========================================================
+//  AUDIO (pequeños pitidos con WebAudio)
+// ========================================================
+let actx=null;
+function beep(freq,dur,vol){
+  try{
+    if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.frequency.value=freq; o.type='square';
+    g.gain.value=vol||0.05;
+    o.connect(g); g.connect(actx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime+dur);
+    o.stop(actx.currentTime+dur);
+  }catch(e){}
+}
+
+// ========================================================
+//  BUCLE PRINCIPAL DEL JUEGO
+// ========================================================
+// Inicia una nueva partida: reinicia el estado, genera la primera oleada
+// y arranca el bucle de animación.
+function startGame(name){
+  state.playerName = name;
+  state.score = 0; state.level = 1; state.lives = 3;
+  state.bullets=[]; state.enemyBullets=[]; state.particles=[];
+  state.player = createPlayer();
+  state.invuln = 1.2;
+  state.paused = false; state.autofire = false; pointerActive = false;
+  initStars();
+  buildWave(state.level);
+  hPlayer.textContent = name;
+  updateHUD();
+  startScreen.classList.add('hidden');
+  overScreen.classList.add('hidden');
+  pauseScreen.classList.add('hidden');
+  pauseBtn.classList.remove('hidden');
+  state.running = true;
+  state.lastTime = performance.now();
+  requestAnimationFrame(loop);
+}
+
+// Refresca el marcador superior (nivel, puntos y vidas)
+function updateHUD(){
+  hLevel.textContent = state.level;
+  hScore.textContent = state.score;
+  hLives.textContent = '♥'.repeat(Math.max(0,state.lives)) || '—';
+}
+
+// Devuelve los parámetros de dificultad según el nivel actual:
+// a mayor nivel, la formación se mueve más rápido y los enemigos
+// pican y disparan con más frecuencia.
+function difficulty(){
+  return {
+    formSpeed: 16 + state.level*6,
+    diveChance: 0.0008 + state.level*0.0010,
+    enemyBulletSpeed: 150 + state.level*14,
+    enemyFireChance: 0.0010 + state.level*0.0006,
+    maxDivers: 1 + Math.floor(state.level/2)   // picadas simultáneas máximas
+  };
+}
+
+// Bucle por cuadro: calcula el delta de tiempo, actualiza y dibuja.
+// Si el juego está en pausa no avanza la lógica.
+function loop(now){
+  if(!state.running) return;
+  if(state.paused) return;
+  let dt = (now - state.lastTime)/1000;
+  if(dt>0.05) dt=0.05;   // limita el salto tras pausas o pestañas inactivas
+  state.lastTime = now;
+  update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+
+// ========================================================
+//  PAUSA
+// ========================================================
+function togglePause(){ state.paused ? resumeGame() : pauseGame(); }
+function pauseGame(){
+  if(!state.running || state.paused) return;
+  state.paused = true;
+  state.autofire = false; pointerActive = false;
+  pauseScreen.classList.remove('hidden');
+}
+function resumeGame(){
+  if(!state.running || !state.paused) return;
+  state.paused = false;
+  pauseScreen.classList.add('hidden');
+  state.lastTime = performance.now();   // evita un salto grande de tiempo
+  requestAnimationFrame(loop);
+}
+// Vuelve al menú principal abandonando la partida en curso
+function quitToMenu(){
+  state.running = false; state.paused = false;
+  pauseScreen.classList.add('hidden');
+  pauseBtn.classList.add('hidden');
+  startScreen.classList.remove('hidden');
+  requestAnimationFrame(idleAnim);
+}
+// Pausa automáticamente si se cambia de pestaña o se minimiza
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden && state.running && !state.paused) pauseGame();
+});
+
+// Actualiza toda la lógica del juego en un cuadro (dt en segundos)
+function update(dt){
+  const d = difficulty();
+  const p = state.player;
+
+  // estrellas (desplazamiento hacia abajo)
+  for(const s of state.stars){ s.y += s.v*dt; if(s.y>H){ s.y=0; s.x=Math.random()*W; } }
+
+  // movimiento del jugador
+  if(state.keys['ArrowLeft']) p.x -= p.speed*dt;
+  if(state.keys['ArrowRight']) p.x += p.speed*dt;
+  p.x = Math.max(p.w/2, Math.min(W-p.w/2, p.x));
+  if(p.cooldown>0) p.cooldown -= dt;
+  if(state.invuln>0) state.invuln -= dt;
+  // Disparo continuo: teclado (espacio/arriba) o autofuego táctil
+  if(state.keys['ArrowUp'] || state.keys[' '] || state.autofire) tryFire();
+
+  // disparos del jugador
+  for(const b of state.bullets){ b.y += b.vy*dt; }
+  state.bullets = state.bullets.filter(b=> b.y > -10);
+
+  // movimiento de la formación enemiga
+  state.formationT += dt;
+  const liveEnemies = state.enemies.filter(e=>e.alive);
+  let divers = liveEnemies.filter(e=>e.diving).length;   // picadas en curso
+  // rebote de la formación al tocar los bordes
+  let shift = state.formationDir * d.formSpeed * dt;
+  let willHitEdge=false;
+  for(const e of liveEnemies){
+    if(!e.diving){
+      const nx = e.baseX + shift;
+      if(nx < 24 || nx > W-24){ willHitEdge=true; break; }
+    }
+  }
+  if(willHitEdge){ state.formationDir *= -1; }
+  for(const e of state.enemies){
+    if(!e.alive) continue;
+    if(!e.diving){
+      e.baseX += state.formationDir * d.formSpeed * dt;
+      e.wobble += dt*2;
+      e.x = e.baseX + Math.sin(e.wobble)*3;
+      e.y = e.baseY + Math.sin(state.formationT*1.5 + e.col)*4;
+      // a veces inicia una picada hacia el jugador (limitando las simultáneas)
+      if(divers < d.maxDivers && Math.random() < d.diveChance && liveEnemies.length>0){
+        e.diving=true; e.divePhase=0;
+        e.diveStartX=e.x; e.diveStartY=e.y;
+        e.diveTargetX = p.x;
+        divers++;
+      }
+      // a veces dispara
+      if(Math.random() < d.enemyFireChance){
+        state.enemyBullets.push({ x:e.x, y:e.y+e.r, vy:d.enemyBulletSpeed, r:4 });
+        beep(160,0.06,0.03);
+      }
+    } else {
+      // en picada: baja en zigzag hacia el jugador y reaparece arriba
+      e.divePhase += dt;
+      const t = e.divePhase;
+      e.y = e.diveStartY + t*220;
+      e.x = e.diveStartX + Math.sin(t*4)*60 + (e.diveTargetX - e.diveStartX)*Math.min(1,t*0.6)*0.5;
+      if(Math.random()< d.enemyFireChance*2){
+        state.enemyBullets.push({ x:e.x, y:e.y+e.r, vy:d.enemyBulletSpeed, r:4 });
+      }
+      if(e.y > H+30){
+        // reaparece arriba y vuelve a su lugar en la formación
+        e.diving=false; e.divePhase=0;
+        e.y = e.baseY; e.x = e.baseX;
+      }
+    }
+  }
+
+  // disparos enemigos
+  for(const b of state.enemyBullets){ b.y += b.vy*dt; }
+  state.enemyBullets = state.enemyBullets.filter(b=> b.y < H+10);
+
+  // colisiones: disparos del jugador contra enemigos
+  for(const b of state.bullets){
+    for(const e of state.enemies){
+      if(!e.alive) continue;
+      const dx=b.x-e.x, dy=b.y-e.y;
+      if(dx*dx+dy*dy < (e.r+b.r)*(e.r+b.r)){
+        b.y = -999;
+        e.hp--;
+        if(e.hp<=0){
+          e.alive=false;
+          state.score += e.type.points * state.level;
+          spawnExplosion(e.x,e.y,e.type.color);
+          beep(220,0.12,0.05);
+        } else {
+          spawnExplosion(e.x,e.y,'#ffffff',6);
+        }
+        updateHUD();
+        break;
+      }
+    }
+  }
+  state.bullets = state.bullets.filter(b=> b.y > -10);
+
+  // colisiones: disparos enemigos contra el jugador
+  if(state.invuln<=0){
+    for(const b of state.enemyBullets){
+      const dx=b.x-p.x, dy=b.y-p.y;
+      if(dx*dx+dy*dy < (p.r+b.r)*(p.r+b.r)){
+        b.y=H+999; hitPlayer(); break;
+      }
+    }
+    // colisiones: enemigo en picada contra el jugador
+    for(const e of state.enemies){
+      if(!e.alive) continue;
+      const dx=e.x-p.x, dy=e.y-p.y;
+      if(dx*dx+dy*dy < (e.r+p.r)*(e.r+p.r)){
+        e.alive=false; spawnExplosion(e.x,e.y,e.type.color);
+        hitPlayer(); break;
+      }
+    }
+  }
+  state.enemyBullets = state.enemyBullets.filter(b=> b.y < H+10);
+
+  // partículas
+  for(const pt of state.particles){
+    pt.x+=pt.vx*dt; pt.y+=pt.vy*dt; pt.life-=dt; pt.vy+=120*dt;
+  }
+  state.particles = state.particles.filter(pt=> pt.life>0);
+
+  // si un enemigo de la formación llega abajo, se pierde la partida
+  for(const e of state.enemies){
+    if(e.alive && e.y > H-70 && !e.diving){
+      loseAll();
+      return;
+    }
+  }
+
+  // oleada eliminada => sube de nivel
+  if(state.enemies.every(e=>!e.alive)){
+    state.level++;
+    state.invuln = 1.0;
+    buildWave(state.level);
+    updateHUD();
+    beep(660,0.15,0.05);
+  }
+}
+
+function hitPlayer(){
+  state.lives--;
+  spawnExplosion(state.player.x, state.player.y, '#ffcf33', 20);
+  beep(110,0.3,0.06);
+  updateHUD();
+  if(state.lives<=0){ endGame(false); }
+  else {
+    state.invuln = 1.5;
+    state.player.x = W/2;
+    state.enemyBullets = [];
+  }
+}
+
+function loseAll(){
+  spawnExplosion(state.player.x, state.player.y, '#ff4d6d', 24);
+  endGame(false);
+}
+
+function spawnExplosion(x,y,color,n){
+  n = n||16;
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2, sp=Math.random()*180+40;
+    state.particles.push({ x,y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp,
+      life:Math.random()*0.6+0.3, color, r:Math.random()*3+1 });
+  }
+}
+
+// Termina la partida, guarda el puntaje y muestra el Top 5
+function endGame(won){
+  state.running = false;
+  state.paused = false;
+  pauseScreen.classList.add('hidden');
+  pauseBtn.classList.add('hidden');
+  const finalScore = state.score;
+  const list = saveScore(state.playerName, finalScore);
+  renderScores(state.playerName, finalScore);
+  // mensaje según la posición lograda en el ranking
+  const rank = list.findIndex(e=> e.name===state.playerName && e.score===finalScore);
+  overTitle.textContent = '☠️ PARTIDA TERMINADA';
+  let msg = '<b style="color:#fff">'+escapeHtml(state.playerName)+'</b>, llegaste al nivel <b>'+state.level+'</b> con <b style="color:var(--good)">'+finalScore+'</b> puntos.';
+  if(rank===0){ msg += '<br>🥇 ¡Nuevo récord! Eres el #1.'; }
+  else if(rank>0 && rank<5){ msg += '<br>¡Entraste al Top 5 (#'+(rank+1)+')!'; }
+  overMsg.innerHTML = msg;
+  overScreen.classList.remove('hidden');
+}
+
+// ========================================================
+//  DIBUJADO (RENDER)
+// ========================================================
+function render(){
+  ctx.clearRect(0,0,W,H);
+  // estrellas del fondo
+  ctx.fillStyle='#fff';
+  for(const s of state.stars){
+    ctx.globalAlpha = 0.3 + (s.s/2.4)*0.7;
+    ctx.fillRect(s.x, s.y, s.s, s.s);
+  }
+  ctx.globalAlpha=1;
+
+  // enemigos
+  for(const e of state.enemies){
+    if(!e.alive) continue;
+    paintEnemy(e.type, e.x, e.y, e.r);
+  }
+
+  // disparos enemigos
+  ctx.fillStyle='#ff5577';
+  for(const b of state.enemyBullets){
+    ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.fill();
+  }
+
+  // disparos del jugador
+  ctx.fillStyle='#7fffd4';
+  for(const b of state.bullets){
+    ctx.fillRect(b.x-2, b.y-8, 4, 12);
+  }
+
+  // jugador (parpadea mientras es invulnerable)
+  if(state.player && state.lives>0){
+    const blink = state.invuln>0 && Math.floor(state.invuln*12)%2===0;
+    if(!blink) paintFace(playerSprite, drawAbelardo, state.player.x, state.player.y, state.player.r);
+    // pequeña llama del propulsor
+    if(!blink){
+      ctx.fillStyle='rgba(127,255,212,'+(0.4+Math.random()*0.3)+')';
+      ctx.beginPath();
+      ctx.moveTo(state.player.x-6, state.player.y+state.player.r*1.9);
+      ctx.lineTo(state.player.x+6, state.player.y+state.player.r*1.9);
+      ctx.lineTo(state.player.x, state.player.y+state.player.r*1.9+10+Math.random()*8);
+      ctx.fill();
+    }
+  }
+
+  // partículas de las explosiones
+  for(const pt of state.particles){
+    ctx.globalAlpha = Math.max(0, pt.life);
+    ctx.fillStyle = pt.color;
+    ctx.beginPath(); ctx.arc(pt.x,pt.y,pt.r,0,7); ctx.fill();
+  }
+  ctx.globalAlpha=1;
+}
+
+// Animación de fondo del menú (caras flotando sobre las estrellas)
+function idleAnim(now){
+  if(state.running) return;
+  if(!state.stars.length) initStars();
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fff';
+  for(const s of state.stars){
+    s.y += s.v*0.016; if(s.y>H){ s.y=0; s.x=Math.random()*W; }
+    ctx.globalAlpha=0.3+(s.s/2.4)*0.7;
+    ctx.fillRect(s.x,s.y,s.s,s.s);
+  }
+  ctx.globalAlpha=1;
+  // caras de muestra desplazándose suavemente (usan foto si está lista)
+  const t = now/1000;
+  paintFace(playerSprite, drawAbelardo, W/2, H-90 + Math.sin(t)*6, 26);
+  paintEnemy(ENEMY_TYPES[0], 90+Math.sin(t*0.7)*18, 100, 21);
+  paintEnemy(ENEMY_TYPES[1], W-90+Math.cos(t*0.6)*18, 120, 21);
+  paintEnemy(ENEMY_TYPES[2], W/2-70+Math.sin(t*0.8)*16, 80, 19);
+  paintEnemy(ENEMY_TYPES[4], W/2+90+Math.sin(t*0.9)*18, 95, 19);
+  paintEnemy(ENEMY_TYPES[6], W/2-15+Math.cos(t*0.5)*20, 170, 19);
+  requestAnimationFrame(idleAnim);
+}
+
+// ========================================================
+//  CONEXIÓN DE LA INTERFAZ (botones y eventos)
+// ========================================================
+// Toma el nombre escrito (o "Anónimo") y comienza la partida
+function beginFromInput(){
+  const name = (nameInput.value||'').trim() || 'Anónimo';
+  startGame(name);
+}
+startBtn.addEventListener('click', beginFromInput);
+nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter') beginFromInput(); });
+againBtn.addEventListener('click', ()=> startGame(state.playerName||'Anónimo'));
+pauseBtn.addEventListener('click', togglePause);
+resumeBtn.addEventListener('click', resumeGame);
+quitBtn.addEventListener('click', quitToMenu);
+resetBtn.addEventListener('click', ()=>{
+  if(confirm('¿Borrar todos los récords guardados?')){
+    try{ localStorage.removeItem(LS_KEY); }catch(e){}
+    renderScores();
+  }
+});
+
+// Inicialización: pinta el marcador, enfoca el campo de nombre
+// y arranca la animación de fondo del menú.
+renderScores();
+nameInput.focus();
+requestAnimationFrame(idleAnim);
+
+})();
+</script>
+</body>
+</html>
