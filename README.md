@@ -28,8 +28,16 @@ personajes del **Pacto Histórico** antes de que aterricen.
 - **Optimizado para móvil:** lienzo responsivo y nítido (se adapta a la densidad
   de píxeles del dispositivo), control táctil con disparo automático, pausa
   automática al cambiar de pestaña y soporte para zonas seguras (notch).
-- **Personajes dibujados con código** (caricaturas en `<canvas>`), por lo que no
-  se necesitan imágenes externas:
+- **Identidad visual colombiana:** el título lleva la **bandera de Colombia**
+  (con sus proporciones reales) y el protagonista viste la **camiseta de la
+  Selección Colombia** (amarilla, con cuello tricolor y el número 10).
+- **Distintivo de villano:** cada enemigo lleva una insignia de **calavera** que
+  los marca como antagonistas.
+- **Fotos reales opcionales:** puedes colocar fotos en la carpeta
+  [`assets/`](assets/README.md) y el juego las usará como sprites; si no hay
+  foto, dibuja la ilustración de respaldo. No se necesitan imágenes externas
+  para jugar.
+- **Personajes** (ilustraciones en `<canvas>` con sombreado, o tus fotos):
   - 🛡️ **Jugador:** Abelardo de la Espriella
   - 🎯 **Enemigos:** Gustavo Petro, Iván Cepeda, Francia Márquez, Roy Barreras,
     Gustavo Bolívar, Armando Benedetti, Aída Quilcué, María José Pizarro,
