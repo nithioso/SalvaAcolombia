@@ -6,7 +6,7 @@ personajes del **Pacto Histórico** antes de que aterricen.
 
 ## ▶️ Jugar en línea
 
-**👉 https://gringoinc.github.io/Galaga1/**
+**👉 https://nithioso.github.io/Galaga1/**
 
 (También puedes abrir `index.html` localmente; ver la sección *Publicar*.)
 
@@ -31,6 +31,9 @@ personajes del **Pacto Histórico** antes de que aterricen.
   barra de vida que se mueve y lanza ráfagas (se enfurece con poca vida). Al
   derrotarlo **ganas un mundo**: salen **tigres** 🐯 y el lema
   **"Firmes por la patria 🫡"**, sueltas un power-up y ganas muchos puntos.
+- **Final del juego:** al derrotar al **último villano (Gustavo Petro)** ganas y
+  aparece la **pantalla de victoria** con el mensaje de campaña y la imagen de
+  **Abelardo y José Manuel** (vota la X el 21 de junio 🇨🇴).
 - **Arma mejorable + power-ups:** empiezas con **arma nivel 2** y la subes hasta
   **nivel 5** recogiendo **⬆** (más disparos a la vez). Otros power-ups:
   **⚡ disparo rápido**, **🛡️ escudo** temporal y **♥ vida extra**.
@@ -86,7 +89,7 @@ pausa, colisiones, dibujado e interfaz.
 
 Este repositorio ya está publicado con **GitHub Pages** (Settings → Pages →
 *Deploy from a branch* → `main` / `root`), disponible en
-**https://gringoinc.github.io/Galaga1/**. Cada cambio en `main` se publica solo.
+**https://nithioso.github.io/Galaga1/**. Cada cambio en `main` se publica solo.
 
 Al ser un solo archivo estático, también puedes abrirlo localmente o publicarlo
 en cualquier hosting estático (Netlify, Vercel, etc.) sin compilación.
