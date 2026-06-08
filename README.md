@@ -46,12 +46,12 @@ personajes del **Parto Histérico** antes de que aterricen.
 - **Multilenguaje (es/en):** la interfaz y los mensajes se muestran en **español
   o inglés** según el idioma del navegador (los apodos de los villanos quedan en
   español como guiño local).
-- **Botón de Ranking** en el inicio para ver el récord universal y el Top 5 local
-  sin tener que jugar una partida.
+- **Botón de Ranking** en el inicio para ver el **récord universal** sin tener
+  que jugar una partida.
 - **Récord universal:** ranking en línea **compartido entre todos los
-  jugadores** (mejor puntaje por persona + mundos conquistados). Ver la sección
-  *Récord universal* para activarlo. Además se guarda un **Top 5 local** en el
-  navegador.
+  jugadores** (mejor puntaje por persona + mundos conquistados), con **scroll
+  hasta el Top 50**. Es el único marcador que se muestra. Ver la sección
+  *Récord universal*.
 - **Inicio amable:** empiezas con **5 vidas**, **arma nivel 2** y un **escudo de
   cortesía**; en los primeros niveles los enemigos casi no disparan y no se
   lanzan en picada (las picadas empiezan en el nivel 3). La dificultad sube de

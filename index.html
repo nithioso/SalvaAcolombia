@@ -161,6 +161,10 @@
   .board li .sc{color:var(--good);font-weight:700;margin-left:8px;}
   .board li.me{outline:1px solid var(--accent);}
   .board .empty{opacity:.5;font-size:12px;text-align:center;padding:10px;}
+  /* Lista grande con scroll (ranking universal, hasta 50) */
+  .board.scroll{max-width:340px;}
+  .board.scroll ol{max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:4px;}
+  .board.scroll li{counter-increment:rank;}
   .controls-help{font-size:11px;opacity:.6;margin-top:14px;line-height:1.6;}
   .tag{display:inline-block;background:#1c2350;border-radius:6px;padding:2px 7px;margin:2px;font-size:11px;}
 
@@ -222,13 +226,9 @@
     <div id="overScreen" class="overlay hidden">
       <h2 id="overTitle">FIN DE LA PARTIDA</h2>
       <p id="overMsg"></p>
-      <div class="board" id="globalBoard" style="display:none;">
+      <div class="board scroll" id="globalBoard" style="display:none;">
         <strong style="color:var(--accent);font-size:13px;" data-i18n="boardGlobal">🌐 RÉCORD UNIVERSAL</strong>
         <ol id="globalList"></ol>
-      </div>
-      <div class="board">
-        <strong style="color:var(--accent);font-size:13px;" data-i18n="boardLocal">🏆 Top 5 (este dispositivo)</strong>
-        <ol id="scoreList"></ol>
       </div>
       <button id="againBtn" data-i18n="again">JUGAR DE NUEVO 🔁</button>
     </div>
@@ -259,13 +259,9 @@
     <!-- RANKING (desde el menú) -->
     <div id="rankScreen" class="overlay hidden">
       <h2 data-i18n="rankTitle">🏆 Ranking</h2>
-      <div class="board" id="rankGlobalBoard">
+      <div class="board scroll" id="rankGlobalBoard">
         <strong style="color:var(--accent);font-size:13px;" data-i18n="boardGlobal">🌐 RÉCORD UNIVERSAL</strong>
         <ol id="rankGlobalList"></ol>
-      </div>
-      <div class="board">
-        <strong style="color:var(--accent);font-size:13px;" data-i18n="boardLocal">🏆 Top 5 (este dispositivo)</strong>
-        <ol id="rankLocalList"></ol>
       </div>
       <button id="rankBackBtn" data-i18n="back">⬅ Volver</button>
     </div>
@@ -524,7 +520,7 @@ function sbHeaders(extra){
 }
 // Lee los mejores puntajes (se traen varios y luego se deja el mejor por jugador)
 function fetchGlobalScores(){
-  const url = SUPABASE_URL + '/rest/v1/scores?select=name,score,worlds&order=score.desc&limit=80';
+  const url = SUPABASE_URL + '/rest/v1/scores?select=name,score,worlds&order=score.desc&limit=300';
   return fetch(url, { headers:sbHeaders(), cache:'no-store' })
     .then(r=> r.ok ? r.json() : [])
     .then(a=> Array.isArray(a) ? a : [])
@@ -542,7 +538,7 @@ function mergeGlobal(list){
     const cur = best[name];
     if(!cur || score > cur.score) best[name] = { name, score, worlds:safeInt(e.worlds,9999) };
   });
-  return Object.values(best).sort((a,b)=> b.score - a.score).slice(0,15);
+  return Object.values(best).sort((a,b)=> b.score - a.score).slice(0,50);
 }
 // Inserta el puntaje del jugador y devuelve el Top 15 actualizado
 function submitGlobalScore(name, score, worlds){
@@ -566,13 +562,12 @@ function renderGlobalScores(list, hiName, hiScore){
 
 // ---------- Pantalla de RANKING (desde el menú) ----------
 function showRanking(){
-  renderList(rankLocalList, loadScores(), TR.emptyLocal);
+  rankGlobalBoard.style.display = '';
   if(onlineEnabled()){
-    rankGlobalBoard.style.display = '';
     rankGlobalList.innerHTML = '<div class="empty">'+TR.loadingGlobal+'</div>';
     fetchGlobalScores().then(l=> renderList(rankGlobalList, mergeGlobal(l||[]), TR.emptyGlobal));
   } else {
-    rankGlobalBoard.style.display = 'none';
+    renderList(rankGlobalList, [], TR.emptyGlobal);
   }
   startScreen.classList.add('hidden');
   rankScreen.classList.remove('hidden');
@@ -2030,9 +2025,7 @@ function endGame(won){
   pauseBtn.classList.add('hidden');
   const finalScore = state.score;
   const worlds = state.worlds;
-  const list = saveScore(state.playerName, finalScore, worlds);
-  renderScores(state.playerName, finalScore);
-  // mensaje según la posición lograda en el ranking local
+  const list = saveScore(state.playerName, finalScore, worlds);   // mejor personal (silencioso)
   const rank = list.findIndex(e=> e.name===state.playerName && e.score===finalScore);
   overTitle.textContent = TR.overTitle;
   let msg = TR.overMsg(escapeHtml(state.playerName), state.level, finalScore);
@@ -2041,12 +2034,15 @@ function endGame(won){
   else if(rank>0 && rank<5){ msg += '<br>'+TR.rankTop(rank+1); }
   overMsg.innerHTML = msg;
   overScreen.classList.remove('hidden');
-  // récord universal (si está configurado): enviar y mostrar (no en modo prueba)
-  if(onlineEnabled() && !TEST_MODE){
-    globalBoard.style.display='';
+  // récord universal: siempre se muestra; se envía salvo en modo prueba
+  globalBoard.style.display = '';
+  if(onlineEnabled()){
     globalList.innerHTML = '<div class="empty">'+TR.loadingGlobal+'</div>';
-    submitGlobalScore(state.playerName, finalScore, worlds)
-      .then(glist=> renderGlobalScores(glist, state.playerName, finalScore));
+    const p = TEST_MODE ? fetchGlobalScores().then(l=> mergeGlobal(l||[]))
+                        : submitGlobalScore(state.playerName, finalScore, worlds);
+    p.then(glist=> renderGlobalScores(glist, state.playerName, finalScore));
+  } else {
+    renderGlobalScores([], state.playerName, finalScore);
   }
 }
 
@@ -2269,7 +2265,6 @@ rankBackBtn.addEventListener('click', hideRanking);
 applyI18n();
 try { nameInput.value = localStorage.getItem(LS_NAME) || ''; } catch(e){}
 try { if(localStorage.getItem('salvaAColombia_audio')==='0'){ audio.on=false; muteBtn.textContent='🔇'; } } catch(e){}
-renderScores();
 nameInput.focus();
 nameInput.select();
 requestAnimationFrame(idleAnim);
