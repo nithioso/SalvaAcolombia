@@ -616,7 +616,7 @@ const state = {
   popups:[], banner:null, shakeT:0, shakeMag:0,
   keys:{}, fireCooldown:0, lastTime:0, formationDir:1, formationT:0,
   spawnFlash:0, invuln:0, paused:false, autofire:false, cheat:false,
-  combo:0, comboTimer:0, flashT:0, flashColor:'#fff'
+  combo:0, comboTimer:0, flashT:0, flashColor:'#fff', bonus:null
 };
 
 // ---------- Campo de estrellas (fondo) ----------
@@ -1529,7 +1529,7 @@ function startGame(name){
   state.bullets=[]; state.enemyBullets=[]; state.particles=[];
   state.powerups=[]; state.boss=null; state.worlds=0; state.nextWaveDelay=0; state.advancing=false;
   state.popups=[]; state.banner=null; state.shakeT=0; state.shakeMag=0;
-  state.combo=0; state.comboTimer=0; state.flashT=0;
+  state.combo=0; state.comboTimer=0; state.flashT=0; state.bonus=null;
   state.player = createPlayer();
   // Arranque más fuerte: arma nivel 2 (disparo doble) y escudo de cortesía
   state.player.weapon = 2;
@@ -1728,6 +1728,8 @@ function update(dt){
 
   // jefe (si lo hay)
   if(state.boss) updateBoss(dt, d);
+  // nave bonus
+  updateBonus(dt);
 
   // disparos enemigos (algunos llevan también velocidad horizontal)
   for(const b of state.enemyBullets){ b.x += (b.vx||0)*dt; b.y += b.vy*dt; }
@@ -1773,6 +1775,25 @@ function update(dt){
       if(dx*dx+dy*dy < (bo.r+b.r)*(bo.r+b.r)){
         b.y=-999; bo.hp--; spawnSparks(b.x,b.y,'#ffd100'); spawnExplosion(b.x,b.y,'#fff',4); sfxBossHit();
         if(bo.hp<=0){ defeatBoss(); break; }
+      }
+    }
+    state.bullets = state.bullets.filter(b=> b.y > -10);
+  }
+
+  // colisiones: disparos del jugador contra la nave bonus
+  if(state.bonus){
+    const bo=state.bonus;
+    for(const b of state.bullets){
+      const dx=b.x-bo.x, dy=b.y-bo.y;
+      if(dx*dx+dy*dy < (bo.r+b.r+4)*(bo.r+b.r+4)){
+        b.y=-999;
+        state.score += bo.points;
+        addPopup(bo.x, bo.y, '+'+bo.points+' ⭐');
+        spawnExplosion(bo.x, bo.y, '#ffd100', 22); spawnSparks(bo.x,bo.y,'#fff');
+        addFlash('#ffd100', 0.25); sfxPowerup();
+        spawnPowerup(bo.x, bo.y);     // recompensa
+        state.bonus=null; updateHUD();
+        break;
       }
     }
     state.bullets = state.bullets.filter(b=> b.y > -10);
@@ -2023,8 +2044,8 @@ function celebrateWorld(bossType){
 // sea fácil potenciarse; la vida extra es la más rara.
 function spawnPowerup(x,y){
   const r=Math.random();
-  // más escudos y corazones que antes
-  const type = r<0.38 ? 'weapon' : (r<0.58 ? 'rapid' : (r<0.82 ? 'shield' : 'life'));
+  // pesos: arma común, luego rápido, escudo, 💣 bomba (rara), vida (rara)
+  const type = r<0.34 ? 'weapon' : (r<0.52 ? 'rapid' : (r<0.72 ? 'shield' : (r<0.86 ? 'bomb' : 'life')));
   state.powerups.push({ x, y, vy:80, r:13, type, t:0 });
 }
 // Aplica el efecto al recogerlo
@@ -2037,14 +2058,62 @@ function applyPowerup(pu){
   else if(pu.type==='rapid')  p.rapidTimer = 9;
   else if(pu.type==='shield') p.shieldTimer = 9;
   else if(pu.type==='life')   state.lives = Math.min(9, state.lives+1);
+  else if(pu.type==='bomb')   detonateBomb();
   sfxPowerup();
+  updateHUD();
+}
+// ⭐ Nave BONUS: cruza la parte de arriba; derríbala para puntos extra
+function spawnBonus(){
+  const fromLeft = Math.random()<0.5;
+  state.bonus = { x: fromLeft? -30 : W+30, y: 56 + Math.random()*46,
+                  vx:(fromLeft?1:-1)*(120+state.level*4), r:16, t:0,
+                  points: 300*state.level };
+}
+function updateBonus(dt){
+  // aparición ocasional durante el combate (no con jefe)
+  if(!state.bonus && !state.boss && state.enemies.some(e=>e.alive) && Math.random()<0.0010){
+    spawnBonus();
+  }
+  const b=state.bonus; if(!b) return;
+  b.t += dt; b.x += b.vx*dt;
+  if(b.x < -50 || b.x > W+50) state.bonus=null;
+}
+function drawBonus(){
+  const b=state.bonus; if(!b) return;
+  const yy = b.y + Math.sin(b.t*6)*4;
+  ctx.save();
+  ctx.shadowColor='#ffd100'; ctx.shadowBlur=14;
+  ctx.font='bold 30px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('🛸', b.x, yy);
+  ctx.restore();
+  ctx.fillStyle='#ffd100'; ctx.font='bold 10px Arial'; ctx.textAlign='center';
+  ctx.fillText('BONUS +'+b.points, b.x, yy-20);
+}
+// 💣 Bomba: limpia las balas enemigas y arrasa con lo que haya en pantalla
+function detonateBomb(){
+  addFlash('#fff', 0.6); addShake(12, 0.5); sfxExplosion();
+  showBanner('💣 ¡BOMBA! 💥', '#ffd100', 28, 1.0);
+  state.enemyBullets = [];
+  for(const e of state.enemies){
+    if(!e.alive) continue;
+    e.alive=false;
+    const pts = e.type.points * state.level;
+    state.score += pts;
+    spawnExplosion(e.x, e.y, e.type.color, 12);
+  }
+  if(state.boss && state.boss.alive){
+    state.boss.hp -= 20;          // daño fuerte al jefe (no lo mata de una)
+    spawnExplosion(state.boss.x, state.boss.y, '#fff', 20);
+    if(state.boss.hp<=0) defeatBoss();
+  }
   updateHUD();
 }
 // Dibuja una cápsula de power-up con su color e ícono
 function drawPowerup(pu){
   const col = pu.type==='weapon' ? '#ffd100'
             : pu.type==='rapid'  ? '#2ad1c0'
-            : pu.type==='shield' ? '#5aa6ff' : '#ff4d6d';
+            : pu.type==='shield' ? '#5aa6ff'
+            : pu.type==='bomb'   ? '#ff7a1a' : '#ff4d6d';
   ctx.save();
   ctx.translate(pu.x, pu.y + Math.sin(pu.t*4)*1.5);
   ctx.shadowColor = col; ctx.shadowBlur = 8;
@@ -2053,7 +2122,7 @@ function drawPowerup(pu){
   ctx.shadowBlur = 0;
   ctx.fillStyle = '#06121f'; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.font='bold 14px Arial';
-  const icon = pu.type==='weapon' ? '⬆' : pu.type==='rapid' ? '⚡' : pu.type==='shield' ? '🛡' : '♥';
+  const icon = pu.type==='weapon' ? '⬆' : pu.type==='rapid' ? '⚡' : pu.type==='shield' ? '🛡' : pu.type==='bomb' ? '💣' : '♥';
   ctx.fillText(icon, 0, 1);
   ctx.restore();
 }
@@ -2196,6 +2265,9 @@ function render(){
     ctx.fillStyle='#fff'; ctx.font='bold 11px Arial'; ctx.textAlign='center';
     ctx.fillText(TR.bossLabel(b.finalBoss, b.type.name.toUpperCase(), b.phase, b.maxPhase), W/2, by+20);
   }
+
+  // nave bonus
+  if(state.bonus) drawBonus();
 
   // power-ups que caen
   for(const pu of state.powerups){
