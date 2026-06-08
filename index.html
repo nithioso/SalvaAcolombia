@@ -588,7 +588,7 @@ const state = {
   powerups:[], boss:null, worlds:0, nextWaveDelay:0, advancing:false,
   popups:[], banner:null, shakeT:0, shakeMag:0,
   keys:{}, fireCooldown:0, lastTime:0, formationDir:1, formationT:0,
-  spawnFlash:0, invuln:0, paused:false, autofire:false
+  spawnFlash:0, invuln:0, paused:false, autofire:false, cheat:false
 };
 
 // ---------- Campo de estrellas (fondo) ----------
@@ -1352,7 +1352,7 @@ function tryFire(){
   if(!state.running || state.paused || !state.player) return;
   const p = state.player;
   if(p.cooldown>0) return;
-  const rapid = p.rapidTimer>0;
+  const rapid = p.rapidTimer>0 || state.cheat;   // el hack dispara siempre rápido
   p.cooldown = rapid ? 0.10 : 0.16;     // disparo más rápido que antes (y aún más con ⚡)
   const y = p.y-26, V=-640;
   const shot=(dx,vx)=> state.bullets.push({ x:p.x+dx, y, vx:vx||0, vy:V, r:4 });
@@ -1499,6 +1499,14 @@ function startGame(name){
     state.player.shieldTimer = 1e9;   // escudo permanente
     state.invuln = 1e9;
   }
+  // 🐯 Hack secreto del autor: si te llamas "JonaOsorio" todo al doble
+  state.cheat = /^\s*jonaosorio\s*$/i.test(name||'');
+  if(state.cheat){
+    state.lives = 10;                 // vidas duplicadas
+    state.player.weapon = 5;          // armas al máximo (doble de poder)
+    state.player.shieldTimer = 1e9;   // escudo permanente (doble)
+    state.invuln = Math.max(state.invuln, 3);
+  }
   state.paused = false; state.autofire = false; pointerActive = false;
   initStars();
   buildWave(state.level);
@@ -1528,20 +1536,29 @@ function updateHUD(){
 // pican y disparan con más frecuencia.
 function difficulty(){
   const L = state.level;
+  let d;
   if(TEST_MODE){
     // enemigos casi sin disparar y sin picadas, para llegar fácil al final
-    return { formSpeed: 8 + L*3, diveChance: 0, enemyBulletSpeed: 120,
-             enemyFireChance: 0.00008, maxDivers: 1 };
+    d = { formSpeed: 8 + L*3, diveChance: 0, enemyBulletSpeed: 120,
+          enemyFireChance: 0.00008, maxDivers: 1 };
+  } else {
+    d = {
+      formSpeed: 10 + L*5,
+      // los enemigos no pican hasta el nivel 3
+      diveChance: Math.max(0, L-2) * 0.0011,
+      enemyBulletSpeed: 130 + L*10,
+      // disparos enemigos un poco menos frecuentes (balance más amable)
+      enemyFireChance: 0.00035 + Math.max(0, L-1) * 0.00035,
+      maxDivers: 1 + Math.floor(L/3)   // picadas simultáneas máximas
+    };
   }
-  return {
-    formSpeed: 10 + L*5,
-    // los enemigos no pican hasta el nivel 3
-    diveChance: Math.max(0, L-2) * 0.0011,
-    enemyBulletSpeed: 130 + L*10,
-    // disparos enemigos un poco menos frecuentes (balance más amable)
-    enemyFireChance: 0.00035 + Math.max(0, L-1) * 0.00035,
-    maxDivers: 1 + Math.floor(L/3)   // picadas simultáneas máximas
-  };
+  // 🐯 Hack: los malos atacan menos
+  if(state.cheat){
+    d.enemyFireChance *= 0.4;
+    d.enemyBulletSpeed *= 0.8;
+    d.diveChance *= 0.4;
+  }
+  return d;
 }
 
 // Bucle por cuadro: calcula el delta de tiempo, actualiza y dibuja.
@@ -1886,7 +1903,7 @@ function winGame(){
   setTimeout(sfxFanfare, 700);
   speak(TR.speakWin);
   // registra el puntaje en el récord universal (no en modo prueba)
-  if(onlineEnabled() && !TEST_MODE) submitGlobalScore(state.playerName, finalScore, worlds);
+  if(onlineEnabled() && !TEST_MODE && !state.cheat) submitGlobalScore(state.playerName, finalScore, worlds);
 }
 
 // Gritos de batalla / campaña de los Tigres (se elige uno al azar al ganar).
@@ -2040,7 +2057,8 @@ function endGame(won){
   globalBoard.style.display = '';
   if(onlineEnabled()){
     globalList.innerHTML = '<div class="empty">'+TR.loadingGlobal+'</div>';
-    const p = TEST_MODE ? fetchGlobalScores().then(l=> mergeGlobal(l||[]))
+    // no se envían puntajes en modo prueba ni con el hack (ranking justo)
+    const p = (TEST_MODE || state.cheat) ? fetchGlobalScores().then(l=> mergeGlobal(l||[]))
                         : submitGlobalScore(state.playerName, finalScore, worlds);
     p.then(glist=> renderGlobalScores(glist, state.playerName, finalScore));
   } else {
