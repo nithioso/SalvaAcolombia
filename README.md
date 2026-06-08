@@ -27,17 +27,18 @@ personajes del **Pacto Histórico** antes de que aterricen.
 
 - **Nombre del jugador:** se solicita al iniciar cada partida (se recuerda el
   último usado).
-- **Jefes finales:** cada **5 niveles** aparece un líder gigante con barra de
-  vida que se mueve y lanza ráfagas de disparos. Al derrotarlo sueltas un
-  power-up y ganas muchos puntos.
+- **Jefes finales y "mundos":** cada **5 niveles** aparece un líder gigante con
+  barra de vida que se mueve y lanza ráfagas (se enfurece con poca vida). Al
+  derrotarlo **ganas un mundo**: salen **tigres** 🐯 y el lema
+  **"Firmes por la patria 🫡"**, sueltas un power-up y ganas muchos puntos.
 - **Power-ups:** caen al destruir enemigos —
   **x2** (disparo doble), **🛡️ escudo** temporal y **♥ vida extra**.
 - **Música y efectos:** banda sonora procedimental y efectos de sonido, con
   botón 🔊 para silenciar (se recuerda tu preferencia).
-- **Top 5 local:** se guarda en el navegador con `localStorage` y se muestra al
-  terminar, resaltando tu posición. Incluye botón para borrarlo.
-- **Marcador global opcional:** ranking en línea compartido entre jugadores
-  (ver sección *Marcador global*).
+- **Récord universal:** ranking en línea **compartido entre todos los
+  jugadores** (mejor puntaje por persona + mundos conquistados). Ver la sección
+  *Récord universal* para activarlo. Además se guarda un **Top 5 local** en el
+  navegador.
 - **Dificultad progresiva y amable al inicio:** el **nivel 1 es suave** (los
   enemigos casi no disparan y no se lanzan en picada) y empiezas con **disparo
   doble** y un **escudo de cortesía**. La dificultad sube nivel a nivel.
@@ -88,22 +89,22 @@ en cualquier hosting estático (Netlify, Vercel, etc.) sin compilación.
 > abrir el archivo directamente con `file://`; en ese caso se verán las
 > ilustraciones de respaldo.
 
-## 🌐 Marcador global (opcional)
+## 🌐 Récord universal (un solo paso para activarlo)
 
-El juego ya guarda tu **Top 5 local**. Para activar además un **ranking en
-línea compartido** entre todos los jugadores (Top 10 global), solo necesitas un
-"bin" JSON gratuito:
+El código del **récord universal** (ranking compartido entre todos los
+jugadores, con el mejor puntaje por persona y los mundos conquistados) ya está
+listo. Solo falta indicarle **dónde guardar los datos**, un almacén JSON
+gratuito que se crea una vez:
 
-1. Entra a **https://jsonblob.com**, borra el contenido y escribe `[]`, y pulsa
-   *Save*.
+1. Entra a **https://jsonblob.com**, deja el contenido en `[]` y pulsa *Save*.
 2. Copia la **URL de la API** (algo como
    `https://jsonblob.com/api/jsonBlob/XXXXXXXXXXXX`).
 3. En `index.html`, pega esa URL en la constante:
    ```js
    const ONLINE_SCORES_URL = ''; // ← pega aquí tu URL
    ```
-4. Sube el cambio. Listo: al terminar una partida aparecerá el **🌐 Top 10
-   global** junto al local.
+4. Sube el cambio. Listo: al terminar cada partida, el puntaje se envía y
+   aparece el **🌐 RÉCORD UNIVERSAL** para todos.
 
 Si la constante queda vacía o no hay conexión, el juego sigue funcionando con el
-Top 5 local sin ningún problema.
+**Top 5 local** sin ningún problema.
