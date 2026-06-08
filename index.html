@@ -973,13 +973,16 @@ function drawSprite(sprite, x, y, r){
   const img=sprite.img;
   const iw=img.naturalWidth, ih=img.naturalHeight;
   if(!iw || !ih) return false;
-  const R=r*1.02, d=R*2;                 // disco del tamaño del personaje (antes 1.18)
+  const R=r*1.02, d=R*2;                 // disco del tamaño del personaje
   const scale=Math.max(d/iw, d/ih);      // recorte tipo "cover"
   const w=iw*scale, h=ih*scale;
+  // Encuadre vertical: en verticales la cara va arriba (sube más); en
+  // horizontales la cara suele ir centrada (sube poquito).
+  const portrait = ih > iw*1.1;
+  const biasY = portrait ? h*0.12 : h*0.04;
   ctx.save();
   ctx.beginPath(); ctx.arc(x,y,R,0,Math.PI*2); ctx.closePath(); ctx.clip();
-  // sesga el recorte un poco hacia arriba: en retratos la cara suele ir arriba
-  ctx.drawImage(img, x-w/2, y-h/2 - h*0.06, w, h);
+  ctx.drawImage(img, x-w/2, y-h/2 - biasY, w, h);
   ctx.restore();
   // borde sutil alrededor de la ficha
   ctx.lineWidth=Math.max(1, r*0.06);
