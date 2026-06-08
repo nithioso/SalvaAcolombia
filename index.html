@@ -106,6 +106,8 @@
     overflow-y:auto;-webkit-overflow-scrolling:touch;
   }
   .overlay.hidden{display:none;}
+  /* Bloqueo breve para que un toque que sigue presionado no salte la pantalla */
+  .overlay.locked{pointer-events:none;}
   .overlay h2{margin:0 0 6px;font-size:clamp(18px,5vw,23px);color:var(--accent);}
   .overlay p{margin:6px 0;font-size:13px;opacity:.85;line-height:1.5;}
   input[type=text]{
@@ -336,7 +338,7 @@ const STR = {
     start:'EMPEZAR ▶',
     seeRanking:'🏆 Ver ranking',
     controls:'📱 <b>Móvil:</b> desliza el dedo para mover. El disparo es automático.<br>💻 <b>PC:</b> ⬅️ ➡️ mover &nbsp;•&nbsp; ESPACIO / clic = disparar &nbsp;•&nbsp; P = pausa',
-    shareInvite:'Compartir:', shareWin:'Compartir tu logro:', copy:'Copiar',
+    shareInvite:'Compartir:', shareWin:'📣 ¡Presume que salvaste la patria! Compártelo:', copy:'Copiar',
     boardGlobal:'🌐 RÉCORD UNIVERSAL', boardLocal:'🏆 Top 5 (este dispositivo)',
     again:'JUGAR DE NUEVO 🔁',
     pauseTitle:'⏸️ PAUSA', pauseMsg:'El juego está en pausa.', resume:'CONTINUAR ▶', quit:'Salir al menú',
@@ -363,7 +365,7 @@ const STR = {
       'Ahora tu paso para salvarla es <b>marcar la X sobre el Tigre y José Manuel</b> este <b>21 de junio</b>.<br>'+
       '¡Vamos firmes por la patria! 🐯🫡<br><br>Puntaje: <b style="color:var(--good)">'+sc+'</b> · Mundos: <b>'+w+'</b>',
     cheatOn:'🐯 ¡MODO TIGRE ACTIVADO!', cheatSub:'Armas, escudo y vidas al doble 🫡', combo:'COMBO',
-    world:'MUNDO', bossOfWorld:(n)=>'Jefe del mundo: '+n+' 💀', onFire:'🔥 ¡EN LLAMAS! 🔥', card:'🖼️ Tarjeta',
+    world:'MUNDO', bossOfWorld:(n)=>'Jefe del mundo: '+n+' 💀', onFire:'🔥 ¡EN LLAMAS! 🔥', card:'🖼️ ¡Comparte tu tarjeta de puntaje!',
     speakWin:'¡Ganaste salvando a Colombia! Marca la X por el Tigre y José Manuel este 21 de junio. ¡Firmes por la patria!',
     copied:'¡Copiado! Pégalo donde quieras. 🐯🇨🇴',
     shareWinTxt:(sc,w)=>'¡Gané Salva a Colombia con el Tigre y JoseManuel! 🐯🇨🇴 Puntaje: '+sc+' · Mundos: '+w+'. ¡Firmes por la patria! 🫡',
@@ -383,7 +385,7 @@ const STR = {
     start:'START ▶',
     seeRanking:'🏆 Leaderboard',
     controls:'📱 <b>Mobile:</b> drag your finger to move. Auto-fire.<br>💻 <b>PC:</b> ⬅️ ➡️ move &nbsp;•&nbsp; SPACE / click = shoot &nbsp;•&nbsp; P = pause',
-    shareInvite:'Share:', shareWin:'Share your win:', copy:'Copy',
+    shareInvite:'Share:', shareWin:'📣 Brag that you saved the homeland! Share it:', copy:'Copy',
     boardGlobal:'🌐 WORLD RECORD', boardLocal:'🏆 Top 5 (this device)',
     again:'PLAY AGAIN 🔁',
     pauseTitle:'⏸️ PAUSED', pauseMsg:'The game is paused.', resume:'RESUME ▶', quit:'Quit to menu',
@@ -410,7 +412,7 @@ const STR = {
       'Now your move to save it: <b>vote the X for the Tiger and José Manuel</b> this <b>June 21</b>.<br>'+
       'Firm for the homeland! 🐯🫡<br><br>Score: <b style="color:var(--good)">'+sc+'</b> · Worlds: <b>'+w+'</b>',
     cheatOn:'🐯 TIGER MODE ON!', cheatSub:'Weapons, shield & lives doubled 🫡', combo:'COMBO',
-    world:'WORLD', bossOfWorld:(n)=>'World boss: '+n+' 💀', onFire:'🔥 ON FIRE! 🔥', card:'🖼️ Card',
+    world:'WORLD', bossOfWorld:(n)=>'World boss: '+n+' 💀', onFire:'🔥 ON FIRE! 🔥', card:'🖼️ Share your score card!',
     speakWin:'You won and saved Colombia! Vote the X for the Tiger and José Manuel this June 21. Firm for the homeland!',
     copied:'Copied! Paste it anywhere. 🐯🇨🇴',
     shareWinTxt:(sc,w)=>'I beat Save Colombia with the Tiger & JoseManuel! 🐯🇨🇴 Score: '+sc+' · Worlds: '+w+'. Firm for the homeland! 🫡',
@@ -1958,6 +1960,7 @@ function winGame(){
   winImg.onerror = ()=>{ winImg.style.display='none'; };
   winImg.src = 'assets/abelardoyjosemanuel.jpg';
   winScreen.classList.remove('hidden');
+  lockOverlay(winScreen, 1200);   // que el toque que sigue presionado no lo salte
   // celebración sonora
   sfxFanfare();
   setTimeout(sfxFanfare, 700);
@@ -2106,6 +2109,13 @@ function addShake(mag, dur){
 function addPopup(x,y,text){ state.popups.push({ x, y, text, t:0.9 }); }
 // Destello de pantalla (color breve)
 function addFlash(color, dur){ state.flashColor = color||'#fff'; state.flashT = Math.max(state.flashT, dur||0.25); }
+// Bloquea los toques del overlay un instante (evita que un dedo que sigue
+// presionado al terminar la partida salte la pantalla y reinicie sin querer).
+function lockOverlay(el, ms){
+  if(!el || !el.classList) return;
+  el.classList.add('locked');
+  setTimeout(()=> el.classList.remove('locked'), ms||900);
+}
 // Color de ambiente según el mundo actual (cambia cada 5 niveles)
 function worldHue(){ return (Math.floor((state.level-1)/5) * 47) % 360; }
 
@@ -2127,6 +2137,7 @@ function endGame(won){
   else if(rank>0 && rank<5){ msg += '<br>'+TR.rankTop(rank+1); }
   overMsg.innerHTML = msg;
   overScreen.classList.remove('hidden');
+  lockOverlay(overScreen, 1000);   // evita reinicio accidental con el dedo aún presionado
   // récord universal: siempre se muestra; se envía salvo en modo prueba
   globalBoard.style.display = '';
   if(onlineEnabled()){
