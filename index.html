@@ -1137,7 +1137,9 @@ function loadSprite(base, wikiTitle){
     if(!triedWiki){
       triedWiki=true;
       fetchWikiPhoto(wikiTitle, url=>{
-        if(url){ o.img.crossOrigin='anonymous'; o.img.src=url; }
+        // sin crossOrigin: más confiable con el caché de Wikimedia (solo dibujamos,
+        // nunca leemos píxeles del lienzo, así que el "taint" no afecta).
+        if(url){ o.img.src=url; }
       });
     }
   };
