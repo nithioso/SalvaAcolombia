@@ -34,8 +34,12 @@ personajes del **Pacto Histórico** antes de que aterricen.
 - **Arma mejorable + power-ups:** empiezas con **arma nivel 2** y la subes hasta
   **nivel 5** recogiendo **⬆** (más disparos a la vez). Otros power-ups:
   **⚡ disparo rápido**, **🛡️ escudo** temporal y **♥ vida extra**.
-- **Música y efectos:** banda sonora procedimental y efectos de sonido, con
-  botón 🔊 para silenciar (se recuerda tu preferencia).
+- **Música, efectos y voz:** banda sonora procedimental, efectos de sonido,
+  **fanfarria de victoria** y una **voz** que grita el lema al ganar un mundo
+  (si el navegador lo soporta). Botón 🔊 para silenciar (preferencia recordada).
+- **Detalles:** cada protagonista dispara de un **color distinto** (Abelardo
+  dorado, Restrepo azul), contador de **Mundo** en el HUD, y favicon de
+  **tigre con la bandera de Colombia** 🐯🇨🇴.
 - **Récord universal:** ranking en línea **compartido entre todos los
   jugadores** (mejor puntaje por persona + mundos conquistados). Ver la sección
   *Récord universal* para activarlo. Además se guarda un **Top 5 local** en el
