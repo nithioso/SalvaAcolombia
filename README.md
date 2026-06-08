@@ -31,17 +31,19 @@ personajes del **Pacto Histórico** antes de que aterricen.
   barra de vida que se mueve y lanza ráfagas (se enfurece con poca vida). Al
   derrotarlo **ganas un mundo**: salen **tigres** 🐯 y el lema
   **"Firmes por la patria 🫡"**, sueltas un power-up y ganas muchos puntos.
-- **Power-ups:** caen al destruir enemigos —
-  **x2** (disparo doble), **🛡️ escudo** temporal y **♥ vida extra**.
+- **Arma mejorable + power-ups:** empiezas con **arma nivel 2** y la subes hasta
+  **nivel 5** recogiendo **⬆** (más disparos a la vez). Otros power-ups:
+  **⚡ disparo rápido**, **🛡️ escudo** temporal y **♥ vida extra**.
 - **Música y efectos:** banda sonora procedimental y efectos de sonido, con
   botón 🔊 para silenciar (se recuerda tu preferencia).
 - **Récord universal:** ranking en línea **compartido entre todos los
   jugadores** (mejor puntaje por persona + mundos conquistados). Ver la sección
   *Récord universal* para activarlo. Además se guarda un **Top 5 local** en el
   navegador.
-- **Dificultad progresiva y amable al inicio:** el **nivel 1 es suave** (los
-  enemigos casi no disparan y no se lanzan en picada) y empiezas con **disparo
-  doble** y un **escudo de cortesía**. La dificultad sube nivel a nivel.
+- **Inicio amable:** empiezas con **5 vidas**, **arma nivel 2** y un **escudo de
+  cortesía**; en los primeros niveles los enemigos casi no disparan y no se
+  lanzan en picada (las picadas empiezan en el nivel 3). La dificultad sube de
+  forma gradual nivel a nivel.
 - **Optimizado para móvil:** lienzo responsivo y nítido (se adapta a la densidad
   de píxeles del dispositivo), control táctil con disparo automático, pausa
   automática al cambiar de pestaña y soporte para zonas seguras (notch).
