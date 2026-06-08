@@ -890,30 +890,35 @@ function drawGuerrero(x,y,r){
 // mujer/hombre (Laura, Bolívar, Juliana…) y termina con los villanos mayores:
 // Iván Cepeda (penúltimo) y Gustavo Petro (jefe final).
 const ENEMY_TYPES = [
-  { name:'Laura Sarabia',      draw:drawSarabia,   color:'#ecc49a', points:30, img:'assets/sarabia',   wiki:'Laura Sarabia',      fem:true },
-  { name:'Gustavo Bolívar',    draw:drawBolivar,   color:'#dca97c', points:30, img:'assets/bolivar',   wiki:'Gustavo Bolívar' },
-  { name:'Juliana Guerrero',   draw:drawGuerrero,  color:'#e3b485', points:30, img:'assets/guerrero',  wiki:'Juliana Guerrero',   fem:true },
-  { name:'Roy Barreras',       draw:drawRoy,       color:'#dcab80', points:35, img:'assets/roy',       wiki:'Roy Barreras' },
-  { name:'Francia Márquez',    draw:drawFrancia,   color:'#7a4a2b', points:35, img:'assets/francia',   wiki:'Francia Márquez',    fem:true },
-  { name:'Armando Benedetti',  draw:drawBenedetti, color:'#d9a06f', points:35, img:'assets/benedetti', wiki:'Armando Benedetti' },
-  { name:'Aída Quilcué',       draw:drawQuilcue,   color:'#c98a55', points:40, img:'assets/quilcue',   wiki:'Aída Quilcué',       fem:true },
-  { name:'María José Pizarro', draw:drawPizarro,   color:'#e7bd93', points:40, img:'assets/pizarro',   wiki:'María José Pizarro', fem:true },
-  { name:'Iván Cepeda',        draw:drawCepeda,    color:'#e0b389', points:45, img:'assets/cepeda',    wiki:'Iván Cepeda' },
-  { name:'Gustavo Petro',      draw:drawPetro,     color:'#d9a679', points:60, img:'assets/petro',     wiki:'Gustavo Petro' }
+  { name:'Laura Sarabia',      draw:drawSarabia,   color:'#ecc49a', points:30, img:'assets/sarabia',   wiki:['Laura Sarabia','Laura Sarabia Torres','Laura Camila Sarabia Torres'], fem:true },
+  { name:'Gustavo Bolívar',    draw:drawBolivar,   color:'#dca97c', points:30, img:'assets/bolivar',   wiki:['Gustavo Bolívar','Gustavo Bolívar Moreno'] },
+  { name:'Juliana Guerrero',   draw:drawGuerrero,  color:'#e3b485', points:30, img:'assets/guerrero',  wiki:['Juliana Guerrero','Juliana Guerrero Jiménez'], fem:true },
+  { name:'Roy Barreras',       draw:drawRoy,       color:'#dcab80', points:35, img:'assets/roy',       wiki:['Roy Barreras','Roy Leonardo Barreras'] },
+  { name:'Francia Márquez',    draw:drawFrancia,   color:'#7a4a2b', points:35, img:'assets/francia',   wiki:['Francia Márquez','Francia Elena Márquez Mina'], fem:true },
+  { name:'Armando Benedetti',  draw:drawBenedetti, color:'#d9a06f', points:35, img:'assets/benedetti', wiki:['Armando Benedetti','Armando Benedetti Villaneda'] },
+  { name:'Aída Quilcué',       draw:drawQuilcue,   color:'#c98a55', points:40, img:'assets/quilcue',   wiki:['Aída Quilcué','Aida Quilcué'], fem:true },
+  { name:'María José Pizarro', draw:drawPizarro,   color:'#e7bd93', points:40, img:'assets/pizarro',   wiki:['María José Pizarro','María José Pizarro Rodríguez'], fem:true },
+  { name:'Iván Cepeda',        draw:drawCepeda,    color:'#e0b389', points:45, img:'assets/cepeda',    wiki:['Iván Cepeda','Iván Cepeda Castro'] },
+  { name:'Gustavo Petro',      draw:drawPetro,     color:'#d9a679', points:60, img:'assets/petro',     wiki:['Gustavo Petro','Gustavo Petro Urrego'] }
 ];
 
 // ========================================================
 //  SPRITES (fotos reales)
 // ========================================================
-// Pide a Wikipedia la miniatura (foto) de un artículo. La petición la hace
-// el NAVEGADOR del jugador, así que funciona aunque haya restricciones de red
-// del lado del servidor. Wikimedia permite CORS con origin=*.
-function fetchWikiPhoto(title, cb){
-  if(!title || typeof fetch!=='function') return cb(null);
+// Pide a Wikipedia la miniatura (foto) de un artículo. Acepta UNO o VARIOS
+// títulos candidatos (string o arreglo) y prueba cada uno en es y en. La
+// petición la hace el NAVEGADOR del jugador (Wikimedia permite CORS origin=*).
+function fetchWikiPhoto(titles, cb){
+  if(typeof fetch!=='function') return cb(null);
+  const list = [].concat(titles||[]).filter(Boolean);
+  if(!list.length) return cb(null);
   const langs=['es','en'];
+  const combos=[];
+  list.forEach(t=> langs.forEach(l=> combos.push([l,t])));
   (function attempt(i){
-    if(i>=langs.length) return cb(null);
-    const api='https://'+langs[i]+'.wikipedia.org/w/api.php'
+    if(i>=combos.length) return cb(null);
+    const lang=combos[i][0], title=combos[i][1];
+    const api='https://'+lang+'.wikipedia.org/w/api.php'
       +'?action=query&format=json&origin=*&redirects=1'
       +'&prop=pageimages&piprop=thumbnail&pithumbsize=512'
       +'&titles='+encodeURIComponent(title);
@@ -953,7 +958,7 @@ const HEROES = [
   { name:'Abelardo de la Espriella', draw:drawAbelardo, bullet:'#ffe14d',
     sprite:loadSprite('assets/abelardo', 'Abelardo de la Espriella') },
   { name:'José Manuel Restrepo',     draw:drawRestrepo, bullet:'#5ad1ff',
-    sprite:loadSprite('assets/restrepo', 'José Manuel Restrepo Abondano') }
+    sprite:loadSprite('assets/restrepo', ['José Manuel Restrepo Abondano','José Manuel Restrepo']) }
 ];
 // Devuelve el protagonista del mundo actual (cambia cada 5 niveles)
 function currentHero(){
