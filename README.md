@@ -126,3 +126,10 @@ Si no hay conexión, el juego sigue funcionando con el **Top 5 local**.
 ## ✍️ Autor
 
 Creado con amoor por la patria por [@NiThiOso](https://x.com/NiThiOso) 🐯🇨🇴
+
+## 📜 Licencia
+
+**Software propietario — Copyright © 2026 @NiThiOso. Todos los derechos
+reservados.** Prohibida la copia, modificación, distribución o uso sin
+autorización escrita del autor. Ver el archivo [`LICENSE`](LICENSE). Las fotos de
+Wikipedia/Wikimedia Commons pertenecen a sus respectivos autores y licencias.
