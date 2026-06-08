@@ -210,7 +210,8 @@
       <h2 style="color:var(--good)">🎉 ¡GANASTE! 🇨🇴</h2>
       <p id="winMsg"></p>
       <img id="winImg" alt="Abelardo y José Manuel — campaña" style="display:none;max-width:100%;max-height:34vh;border-radius:12px;border:2px solid var(--accent);margin:6px 0;">
-      <button id="winAgainBtn">JUGAR DE NUEVO 🔁</button>
+      <button id="winShareBtn">Compartir 📣</button>
+      <button id="winAgainBtn" class="secondary">JUGAR DE NUEVO 🔁</button>
     </div>
   </div>
 
@@ -279,6 +280,7 @@ const overMsg     = document.getElementById('overMsg');
 const winScreen   = document.getElementById('winScreen');
 const winMsg      = document.getElementById('winMsg');
 const winImg      = document.getElementById('winImg');
+const winShareBtn = document.getElementById('winShareBtn');
 const winAgainBtn = document.getElementById('winAgainBtn');
 const hPlayer = document.getElementById('hPlayer');
 const hWorld  = document.getElementById('hWorld');
@@ -1063,13 +1065,16 @@ function createPlayer(){
 
 // Construye una oleada de enemigos en formación.
 // El número de filas crece con el nivel (hasta 6).
-// Crea un JEFE (cada 5 niveles): un líder gigante con mucha vida
+// Crea un JEFE (cada 5 niveles): un líder gigante con mucha vida.
+// El ÚLTIMO villano (Gustavo Petro) es un jefe FINAL con 3 fases.
 function createBoss(level){
   const idx = (Math.floor(level/5) - 1) % ENEMY_TYPES.length;
   const type = ENEMY_TYPES[(idx+ENEMY_TYPES.length)%ENEMY_TYPES.length];
-  const hp = 28 + level*7;      // primer jefe (nivel 5) ≈ 63 de vida
-  return { type, x:W/2, y:120, r:58, vx:60+level*3,
-           hp, maxHp:hp, fireTimer:1.6, t:0, alive:true };
+  const isFinal = idx === ENEMY_TYPES.length - 1;     // Petro
+  const hp = isFinal ? 300 : (28 + level*7);          // jefe final épico
+  return { type, x:W/2, y:120, r:isFinal?66:58, vx:(isFinal?52:60)+level*3,
+           hp, maxHp:hp, fireTimer:1.6, t:0, alive:true,
+           finalBoss:isFinal, phase:1, maxPhase:isFinal?3:1 };
 }
 
 function buildWave(level){
@@ -1079,7 +1084,9 @@ function buildWave(level){
   if(level % 5 === 0){
     state.boss = createBoss(level);
     state.formationDir = 1; state.formationT = 0;
-    showBanner('¡JEFE: '+state.boss.type.name.toUpperCase()+'!', '#ff3b5c');
+    const t = state.boss.type.name.toUpperCase();
+    showBanner((state.boss.finalBoss?'¡JEFE FINAL: ':'¡JEFE: ')+t+'!', '#ff3b5c', 26, 2.0,
+               state.boss.finalBoss?'¡La batalla decisiva por la patria! 🐯':'');
     return;
   }
   const cols = 6;
@@ -1154,6 +1161,9 @@ window.addEventListener('pointercancel', endPointer);
 // Evita el menú contextual y el zoom por doble toque sobre el lienzo
 canvas.addEventListener('contextmenu', e=> e.preventDefault());
 canvas.addEventListener('dblclick', e=> e.preventDefault());
+// Desbloquea el audio en el primer gesto del usuario (imprescindible en iOS)
+['pointerdown','touchend','keydown','click'].forEach(ev=>
+  window.addEventListener(ev, unlockAudio, {passive:true}));
 
 // Dispara según el NIVEL DE ARMA del jugador (mejorable con power-ups)
 function tryFire(){
@@ -1186,7 +1196,23 @@ function getCtx(){
       audio.master.connect(audio.ctx.destination);
     }catch(e){ audio.ctx=null; }
   }
+  // iOS/Safari: el contexto nace "suspended"; hay que reanudarlo (en un gesto)
+  if(audio.ctx && audio.ctx.state==='suspended' && audio.ctx.resume){
+    audio.ctx.resume().catch(()=>{});
+  }
   return audio.ctx;
+}
+// Desbloqueo de audio para móviles (Safari iOS): crea/reanuda el contexto y
+// reproduce un buffer silencioso dentro del primer gesto del usuario.
+function unlockAudio(){
+  const c=getCtx(); if(!c) return;
+  if(!audio._kick){
+    audio._kick = true;
+    try{
+      const b=c.createBuffer(1,1,22050);
+      const s=c.createBufferSource(); s.buffer=b; s.connect(c.destination); s.start(0);
+    }catch(e){}
+  }
 }
 // Tono simple (efectos cortos). type: 'square','triangle','sine','sawtooth'
 function tone(freq,dur,vol,type){
@@ -1272,6 +1298,7 @@ function toggleMute(){
 // Inicia una nueva partida: reinicia el estado, genera la primera oleada
 // y arranca el bucle de animación.
 function startGame(name){
+  unlockAudio();                                            // habilita el sonido (iOS)
   state.playerName = name;
   try { localStorage.setItem(LS_NAME, name); } catch(e){}   // recuerda el nombre
   state.score = 0; state.level = 1; state.lives = 5;   // más vidas
@@ -1560,30 +1587,54 @@ function isProtected(){
   return state.invuln>0 || (state.player && state.player.shieldTimer>0);
 }
 
-// Lógica del jefe: se mueve de lado a lado y lanza ráfagas de disparos
+// Anuncio al cambiar de fase el jefe final
+function onBossPhase(b){
+  addShake(10, 0.5);
+  spawnExplosion(b.x, b.y, '#ffffff', 18);
+  sfxBossHit(); tone(200,0.18,0.05,'square');
+  showBanner('¡'+b.type.name.toUpperCase()+' — FASE '+b.phase+'!', '#ff3b5c', 24, 1.6,
+             b.phase>=3 ? '¡Último esfuerzo, firmes por la patria! 🐯' : '');
+}
+// Lógica del jefe: se mueve de lado a lado y lanza ráfagas de disparos.
+// El jefe final (Petro) escala en 3 fases según su vida.
 function updateBoss(dt, d){
   const b=state.boss, p=state.player;
   b.t += dt;
-  b.x += b.vx*dt;
+  // fases del jefe final
+  if(b.finalBoss){
+    const frac = b.hp / b.maxHp;
+    const ph = frac>0.66 ? 1 : (frac>0.33 ? 2 : 3);
+    if(ph > b.phase){ b.phase = ph; onBossPhase(b); }
+  }
+  const ph = b.phase;
+  const enraged = !b.finalBoss && b.hp < b.maxHp*0.35;
+  // se mueve más rápido en fases avanzadas / enfurecido
+  const moveK = b.finalBoss ? (1 + (ph-1)*0.4) : (enraged?1.5:1);
+  b.x += b.vx * moveK * dt;
   if(b.x < b.r+8){ b.x=b.r+8; b.vx=Math.abs(b.vx); }
   if(b.x > W-b.r-8){ b.x=W-b.r-8; b.vx=-Math.abs(b.vx); }
-  // se mueve más rápido y agresivo al quedar con poca vida (enfurecido)
-  const enraged = b.hp < b.maxHp*0.35;
-  b.y = 110 + Math.sin(b.t*(enraged?1.8:1.2))*18;
+  b.y = 110 + Math.sin(b.t*(1.2 + (b.finalBoss?(ph-1)*0.45:(enraged?0.6:0)) ))*18;
   b.fireTimer -= dt;
   if(b.fireTimer<=0){
-    b.fireTimer = Math.max(0.6, (enraged?1.2:1.8) - state.level*0.02);
+    b.fireTimer = Math.max(0.4, (b.finalBoss ? (1.5 - ph*0.28) : (enraged?1.2:1.8)) - state.level*0.015);
     const speed = d.enemyBulletSpeed*0.72;   // balas del jefe más lentas
-    // abanico de disparos hacia abajo (más amplio si está enfurecido)
-    const n = enraged ? 5 : 3;
+    // abanico de disparos hacia abajo (más amplio con la fase / enfurecido)
+    const n = b.finalBoss ? (1 + 2*ph) : (enraged ? 5 : 3);   // 3,5,7
     for(let i=0;i<n;i++){
-      const a = Math.PI/2 + (i-(n-1)/2)*0.30;
+      const a = Math.PI/2 + (i-(n-1)/2)*0.28;
       state.enemyBullets.push({ x:b.x, y:b.y+b.r*0.5, vx:Math.cos(a)*speed, vy:Math.sin(a)*speed, r:5 });
     }
-    // un disparo dirigido al jugador
+    // disparo dirigido al jugador
     const ang=Math.atan2(p.y-b.y, p.x-b.x);
     state.enemyBullets.push({ x:b.x, y:b.y+b.r*0.5, vx:Math.cos(ang)*speed, vy:Math.sin(ang)*speed, r:5 });
-    tone(enraged?150:120, 0.1, 0.04, 'sawtooth');
+    // fase final: ráfaga radial completa
+    if(b.finalBoss && ph>=3){
+      for(let i=0;i<12;i++){
+        const a=i/12*Math.PI*2;
+        state.enemyBullets.push({ x:b.x, y:b.y, vx:Math.cos(a)*speed*0.8, vy:Math.sin(a)*speed*0.8, r:5 });
+      }
+    }
+    tone(b.finalBoss?(120+ph*30):(enraged?150:120), 0.1, 0.04, 'sawtooth');
   }
 }
 
@@ -1815,7 +1866,8 @@ function render(){
     ctx.fillStyle='#ff3b5c'; ctx.fillRect(bx,by,bw*frac,8);
     ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=1; ctx.strokeRect(bx,by,bw,8);
     ctx.fillStyle='#fff'; ctx.font='bold 11px Arial'; ctx.textAlign='center';
-    ctx.fillText('JEFE: '+b.type.name.toUpperCase(), W/2, by+20);
+    ctx.fillText((b.finalBoss?'JEFE FINAL: ':'JEFE: ')+b.type.name.toUpperCase()
+                 +(b.finalBoss?(' — FASE '+b.phase+'/'+b.maxPhase):''), W/2, by+20);
   }
 
   // power-ups que caen
@@ -1958,6 +2010,28 @@ startBtn.addEventListener('click', beginFromInput);
 nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter') beginFromInput(); });
 againBtn.addEventListener('click', ()=> startGame(state.playerName||'Anónimo'));
 winAgainBtn.addEventListener('click', ()=> startGame(state.playerName||'Anónimo'));
+winShareBtn.addEventListener('click', shareWin);
+
+// Comparte el logro (Web Share API en móvil; WhatsApp como respaldo)
+function shareWin(){
+  const url = 'https://nithioso.github.io/Galaga1/';
+  const txt = '¡Gané Salva a Colombia con el Tigre y JoseManuel! 🐯🇨🇴 '
+            + 'Puntaje: '+state.score+' · Mundos: '+state.worlds+'. ¡Firmes por la patria! 🫡';
+  try{
+    if(navigator.share){
+      navigator.share({ title:'Salva a Colombia', text:txt, url }).catch(()=>{});
+    } else if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt+' '+url).then(
+        ()=> alert('¡Copiado! Pégalo donde quieras compartirlo. 🐯🇨🇴'),
+        ()=> window.open('https://wa.me/?text='+encodeURIComponent(txt+' '+url),'_blank')
+      );
+    } else {
+      window.open('https://wa.me/?text='+encodeURIComponent(txt+' '+url),'_blank');
+    }
+  }catch(e){
+    window.open('https://wa.me/?text='+encodeURIComponent(txt+' '+url),'_blank');
+  }
+}
 pauseBtn.addEventListener('click', togglePause);
 muteBtn.addEventListener('click', toggleMute);
 resumeBtn.addEventListener('click', resumeGame);
