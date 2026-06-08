@@ -323,24 +323,28 @@ function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-// ---------- Marcador GLOBAL en línea (opcional) ----------
-// Para activar un ranking compartido entre todos los jugadores, crea un "bin"
-// JSON gratuito (p. ej. en https://jsonblob.com con contenido []) y pega aquí su
-// URL de API. Si queda vacío, el juego usa solo el Top 5 local del dispositivo.
-const ONLINE_SCORES_URL = '';   // ej: 'https://jsonblob.com/api/jsonBlob/XXXXXXXXXXXX'
+// ---------- Récord UNIVERSAL (Supabase) ----------
+// Ranking compartido entre todos los jugadores. La clave "anon" es pública por
+// diseño; la seguridad la da la RLS del servidor (solo permite leer e insertar
+// puntajes válidos; nadie puede editar ni borrar).
+const SUPABASE_URL  = 'https://vvjrksmyfrcluelimxyq.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2anJrc215ZnJjbHVlbGlteHlxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4Nzc5ODQsImV4cCI6MjA5NjQ1Mzk4NH0.l2nkqBiNc3yb7QVrO_XPJZWqwCJrt7GCSy854keXo48';
 function onlineEnabled(){
-  return typeof ONLINE_SCORES_URL==='string'
-      && /^https?:\/\//.test(ONLINE_SCORES_URL)
-      && typeof fetch==='function';
+  return typeof fetch==='function' && /^https:\/\//.test(SUPABASE_URL) && !!SUPABASE_ANON;
 }
+function sbHeaders(extra){
+  return Object.assign({ apikey:SUPABASE_ANON, Authorization:'Bearer '+SUPABASE_ANON }, extra||{});
+}
+// Lee los mejores puntajes (se traen varios y luego se deja el mejor por jugador)
 function fetchGlobalScores(){
-  return fetch(ONLINE_SCORES_URL, {cache:'no-store'})
-    .then(r=> r.json())
+  const url = SUPABASE_URL + '/rest/v1/scores?select=name,score,worlds&order=score.desc&limit=80';
+  return fetch(url, { headers:sbHeaders(), cache:'no-store' })
+    .then(r=> r.ok ? r.json() : [])
     .then(a=> Array.isArray(a) ? a : [])
     .catch(()=> null);
 }
 // Conserva el mejor puntaje por jugador y ordena (Top 15). Sanea cada entrada
-// (los datos vienen de un almacén compartido y NO son de confianza).
+// (los datos vienen del servidor compartido y NO son de confianza).
 function mergeGlobal(list){
   const best = {};
   (list||[]).forEach(e=>{
@@ -353,16 +357,18 @@ function mergeGlobal(list){
   });
   return Object.values(best).sort((a,b)=> b.score - a.score).slice(0,15);
 }
-// Envía un puntaje al récord universal y devuelve la lista combinada
+// Inserta el puntaje del jugador y devuelve el Top 15 actualizado
 function submitGlobalScore(name, score, worlds){
   if(!onlineEnabled()) return Promise.resolve(null);
-  return fetchGlobalScores().then(list=>{
-    list = mergeGlobal((list||[]).concat([{ name:String(name).slice(0,14), score:score, worlds:worlds||0, date:Date.now() }]));
-    return fetch(ONLINE_SCORES_URL, {
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(list)
-    }).then(()=> list).catch(()=> list);
-  }).catch(()=> null);
+  const body = JSON.stringify({ name:safeName(name), score:safeInt(score,1e9), worlds:safeInt(worlds,9999) });
+  return fetch(SUPABASE_URL + '/rest/v1/scores', {
+      method:'POST',
+      headers:sbHeaders({ 'Content-Type':'application/json', 'Prefer':'return=minimal' }),
+      body
+    })
+    .then(()=> fetchGlobalScores())     // re-lee el ranking ya con tu puntaje
+    .then(list=> mergeGlobal(list||[]))
+    .catch(()=> null);
 }
 // Pinta el récord universal (o un mensaje si no hay datos)
 function renderGlobalScores(list, hiName, hiScore){

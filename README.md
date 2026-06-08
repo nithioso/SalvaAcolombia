@@ -97,22 +97,19 @@ en cualquier hosting estático (Netlify, Vercel, etc.) sin compilación.
 > abrir el archivo directamente con `file://`; en ese caso se verán las
 > ilustraciones de respaldo.
 
-## 🌐 Récord universal (un solo paso para activarlo)
+## 🌐 Récord universal (Supabase)
 
-El código del **récord universal** (ranking compartido entre todos los
-jugadores, con el mejor puntaje por persona y los mundos conquistados) ya está
-listo. Solo falta indicarle **dónde guardar los datos**, un almacén JSON
-gratuito que se crea una vez:
+El **récord universal** está activo con **Supabase**: al terminar cada partida
+el puntaje se envía a una base de datos compartida y se muestra el **🌐 Top 15
+global** (mejor puntaje por jugador + mundos conquistados).
 
-1. Entra a **https://jsonblob.com**, deja el contenido en `[]` y pulsa *Save*.
-2. Copia la **URL de la API** (algo como
-   `https://jsonblob.com/api/jsonBlob/XXXXXXXXXXXX`).
-3. En `index.html`, pega esa URL en la constante:
-   ```js
-   const ONLINE_SCORES_URL = ''; // ← pega aquí tu URL
-   ```
-4. Sube el cambio. Listo: al terminar cada partida, el puntaje se envía y
-   aparece el **🌐 RÉCORD UNIVERSAL** para todos.
+Seguridad del marcador:
 
-Si la constante queda vacía o no hay conexión, el juego sigue funcionando con el
-**Top 5 local** sin ningún problema.
+- La clave `anon` incrustada es **pública por diseño**; la protección la da la
+  **RLS** del servidor: los jugadores solo pueden **leer** e **insertar**
+  puntajes que cumplen validación (nombre ≤ 14, score y worlds en rango). **No
+  se permite editar ni borrar** (no hay policies de UPDATE/DELETE).
+- El cliente además **sanea** todo lo que recibe (enteros acotados + escape de
+  texto), por lo que un dato malicioso en la base no puede inyectar nada.
+
+Si no hay conexión, el juego sigue funcionando con el **Top 5 local**.
