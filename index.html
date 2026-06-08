@@ -88,8 +88,8 @@
   #fx{
     position:absolute; inset:0; pointer-events:none; z-index:2; border-radius:inherit;
     background:
-      repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.12) 2px 3px),
-      radial-gradient(ellipse at center, rgba(0,0,0,0) 52%, rgba(0,0,0,0.5) 100%);
+      repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 3px, rgba(0,0,0,0.06) 3px 4px),
+      radial-gradient(ellipse at center, rgba(0,0,0,0) 66%, rgba(0,0,0,0.32) 100%);
   }
 
   /* Overlays */
@@ -1125,21 +1125,26 @@ function fetchWikiPhoto(titles, cb){
   const list = [].concat(titles||[]).filter(Boolean);
   if(!list.length) return cb(null);
   const langs=['es','en'];
-  const combos=[];
-  list.forEach(t=> langs.forEach(l=> combos.push([l,t])));
+  // Prueba primero la API REST (más tolerante) y luego la action API.
+  const tasks=[];
+  list.forEach(t=> langs.forEach(l=> tasks.push(['rest', l, t])));
+  list.forEach(t=> langs.forEach(l=> tasks.push(['api',  l, t])));
   (function attempt(i){
-    if(i>=combos.length) return cb(null);
-    const lang=combos[i][0], title=combos[i][1];
-    const api='https://'+lang+'.wikipedia.org/w/api.php'
-      +'?action=query&format=json&origin=*&redirects=1'
-      +'&prop=pageimages&piprop=thumbnail&pithumbsize=512'
-      +'&titles='+encodeURIComponent(title);
-    fetch(api).then(r=>r.json()).then(d=>{
-      const pages=(d.query&&d.query.pages)||{};
-      let src=null;
-      for(const k in pages){ if(pages[k].thumbnail&&pages[k].thumbnail.source) src=pages[k].thumbnail.source; }
+    if(i>=tasks.length) return cb(null);
+    const kind=tasks[i][0], lang=tasks[i][1], title=tasks[i][2];
+    let url, parse;
+    if(kind==='rest'){
+      url='https://'+lang+'.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title);
+      parse=d=> (d && ((d.thumbnail&&d.thumbnail.source) || (d.originalimage&&d.originalimage.source))) || null;
+    } else {
+      url='https://'+lang+'.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1'
+        +'&prop=pageimages&piprop=thumbnail&pithumbsize=512&titles='+encodeURIComponent(title);
+      parse=d=>{ const p=(d&&d.query&&d.query.pages)||{}; for(const k in p){ if(p[k].thumbnail&&p[k].thumbnail.source) return p[k].thumbnail.source; } return null; };
+    }
+    fetch(url, {cache:'no-store'}).then(r=> r.ok ? r.json() : null).then(d=>{
+      const src = d ? parse(d) : null;
       if(src) cb(src); else attempt(i+1);
-    }).catch(()=>attempt(i+1));
+    }).catch(()=> attempt(i+1));
   })(0);
 }
 
