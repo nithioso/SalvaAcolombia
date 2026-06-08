@@ -2,6 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<!-- Seguridad: limita de dónde se cargan recursos y a dónde se conecta el juego.
+     Sin scripts externos; solo imágenes/fetch por https (Wikipedia, marcador). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:; font-src 'self'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#05060f">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -272,9 +277,21 @@ const hLives  = document.getElementById('hLives');
 // ---------- Mejores puntajes (almacenados en localStorage) ----------
 const LS_KEY = 'salvaAColombia_top5';
 const LS_NAME = 'salvaAColombia_nombre';   // recuerda el último nombre usado
+// Saneadores: TODO dato que venga de localStorage o de la red se normaliza a
+// tipos seguros (entero acotado / texto corto) para evitar inyecciones.
+function safeInt(v, max){
+  let n = Math.floor(Number(v));
+  if(!isFinite(n) || n<0) n = 0;
+  if(max!=null && n>max) n = max;
+  return n;
+}
+function safeName(v){ return String(v==null ? 'Anónimo' : v).slice(0,14); }
 function loadScores(){
-  try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
-  catch(e){ return []; }
+  try {
+    const a = JSON.parse(localStorage.getItem(LS_KEY)) || [];
+    if(!Array.isArray(a)) return [];
+    return a.map(e=>({ name:safeName(e&&e.name), score:safeInt(e&&e.score,1e9), worlds:safeInt(e&&e.worlds,9999) }));
+  } catch(e){ return []; }
 }
 // Guarda un puntaje, ordena de mayor a menor y conserva solo el Top 5
 function saveScore(name, score, worlds){
@@ -322,13 +339,17 @@ function fetchGlobalScores(){
     .then(a=> Array.isArray(a) ? a : [])
     .catch(()=> null);
 }
-// Conserva el mejor puntaje por jugador y ordena (Top 15)
+// Conserva el mejor puntaje por jugador y ordena (Top 15). Sanea cada entrada
+// (los datos vienen de un almacén compartido y NO son de confianza).
 function mergeGlobal(list){
   const best = {};
   (list||[]).forEach(e=>{
-    if(!e || typeof e.score!=='number') return;
-    const k = String(e.name||'Anónimo');
-    if(!best[k] || e.score > best[k].score) best[k] = e;
+    if(!e || typeof e!=='object') return;
+    if(!isFinite(Number(e.score))) return;        // descarta puntajes no numéricos
+    const name  = safeName(e.name);
+    const score = safeInt(e.score, 1e9);
+    const cur = best[name];
+    if(!cur || score > cur.score) best[name] = { name, score, worlds:safeInt(e.worlds,9999) };
   });
   return Object.values(best).sort((a,b)=> b.score - a.score).slice(0,15);
 }
@@ -354,10 +375,11 @@ function renderGlobalScores(list, hiName, hiScore){
   }
   let hl=false;
   list.forEach(e=>{
+    const name=safeName(e.name), score=safeInt(e.score,1e9), worlds=safeInt(e.worlds,9999);
     const li=document.createElement('li');
-    if(!hl && e.name===hiName && e.score===hiScore){ li.classList.add('me'); hl=true; }
-    const worlds = e.worlds ? ' <span style="opacity:.7">🐯'+e.worlds+'</span>' : '';
-    li.innerHTML = '<span class="nm">'+escapeHtml(e.name)+worlds+'</span><span class="sc">'+e.score+'</span>';
+    if(!hl && name===hiName && score===hiScore){ li.classList.add('me'); hl=true; }
+    const wtxt = worlds>0 ? ' <span style="opacity:.7">🐯'+worlds+'</span>' : '';
+    li.innerHTML = '<span class="nm">'+escapeHtml(name)+wtxt+'</span><span class="sc">'+score+'</span>';
     globalList.appendChild(li);
   });
 }
