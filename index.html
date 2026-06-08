@@ -16,7 +16,7 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="🇨🇴 Salva a Colombia con el Tigre y JoseManuel 🇨🇴">
 <meta property="og:description" content="Juego arcade tipo Galaga: Abelardo de la Espriella contra El Parto Histérico.">
-<meta property="og:url" content="https://nithioso.github.io/Galaga1/">
+<meta property="og:url" content="https://nithioso.github.io/SalvaAcolombia/">
 <meta name="twitter:card" content="summary">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23ce1126'/%3E%3Crect width='64' height='48' fill='%23003893'/%3E%3Crect width='64' height='32' fill='%23ffd100'/%3E%3Ctext x='32' y='46' font-size='42' text-anchor='middle'%3E🐯%3C/text%3E%3C/svg%3E">
 <title>🇨🇴 Salva a Colombia con el Tigre y JoseManuel 🇨🇴</title>
@@ -173,8 +173,8 @@
     <!-- START / NAME -->
     <div id="startScreen" class="overlay">
       <h2>¡Bienvenido, comandante!</h2>
-      <p>Pilotas a <b style="color:#fff">Abelardo de la Espriella</b> y
-         <b style="color:#fff">José Manuel Restrepo</b> (se alternan por mundo).<br>
+      <p>Pilotas a <b style="color:#fff">Abelardo "El Tigre" de la Espriella</b> y
+         <b style="color:#fff">José Manuel "El Profe" Restrepo</b> (se alternan por mundo).<br>
          Derriba a los jefes del Parto Histérico antes de que aterricen.</p>
       <div>
         <span class="tag">El Mesías Petro</span><span class="tag">El Camarada Cepeda</span>
@@ -963,7 +963,7 @@ function fetchWikiPhoto(titles, cb){
 //   2) foto real de Wikipedia
 //   3) (si todo falla) queda ready=false y se usa la ilustración
 function loadSprite(base, wikiTitle){
-  const exts=['png','jpg','jpeg','webp'];
+  const exts=['png','jpg','jpeg','webp','avif','gif'];
   const o={ ready:false, img:new Image() };
   let i=0, triedWiki=false;
   o.img.onload =()=>{ if(o.img.naturalWidth>0) o.ready=true; };
@@ -982,9 +982,9 @@ function loadSprite(base, wikiTitle){
 }
 // Protagonistas: se alternan por mundo (Abelardo y José Manuel Restrepo)
 const HEROES = [
-  { name:'Abelardo de la Espriella', draw:drawAbelardo, bullet:'#ffe14d',
+  { name:"Abelardo 'El Tigre'", draw:drawAbelardo, bullet:'#ffe14d',
     sprite:loadSprite('assets/abelardo', 'Abelardo de la Espriella') },
-  { name:'José Manuel Restrepo',     draw:drawRestrepo, bullet:'#5ad1ff',
+  { name:"José Manuel 'El Profe'", draw:drawRestrepo, bullet:'#5ad1ff',
     sprite:loadSprite('assets/restrepo', ['José Manuel Restrepo Abondano','José Manuel Restrepo']) }
 ];
 // Devuelve el protagonista del mundo actual (cambia cada 5 niveles)
@@ -2053,7 +2053,7 @@ winShareBtn.addEventListener('click', shareWin);
 
 // Comparte el logro (Web Share API en móvil; WhatsApp como respaldo)
 function shareWin(){
-  const url = 'https://nithioso.github.io/Galaga1/';
+  const url = 'https://nithioso.github.io/SalvaAcolombia/';
   const txt = '¡Gané Salva a Colombia con el Tigre y JoseManuel! 🐯🇨🇴 '
             + 'Puntaje: '+state.score+' · Mundos: '+state.worlds+'. ¡Firmes por la patria! 🫡';
   try{
