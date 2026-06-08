@@ -973,15 +973,16 @@ function drawSprite(sprite, x, y, r){
   const img=sprite.img;
   const iw=img.naturalWidth, ih=img.naturalHeight;
   if(!iw || !ih) return false;
-  const R=r*1.18, d=R*2;
-  const scale=Math.max(d/iw, d/ih);     // recorte tipo "cover"
+  const R=r*1.02, d=R*2;                 // disco del tamaño del personaje (antes 1.18)
+  const scale=Math.max(d/iw, d/ih);      // recorte tipo "cover"
   const w=iw*scale, h=ih*scale;
   ctx.save();
   ctx.beginPath(); ctx.arc(x,y,R,0,Math.PI*2); ctx.closePath(); ctx.clip();
-  ctx.drawImage(img, x-w/2, y-h/2, w, h);
+  // sesga el recorte un poco hacia arriba: en retratos la cara suele ir arriba
+  ctx.drawImage(img, x-w/2, y-h/2 - h*0.06, w, h);
   ctx.restore();
   // borde sutil alrededor de la ficha
-  ctx.lineWidth=Math.max(1.5,r*0.08);
+  ctx.lineWidth=Math.max(1, r*0.06);
   ctx.strokeStyle='rgba(255,255,255,0.45)';
   ctx.beginPath(); ctx.arc(x,y,R,0,Math.PI*2); ctx.stroke();
   return true;
