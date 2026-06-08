@@ -183,7 +183,7 @@
 <div id="wrap">
   <header>
     <h1>🇨🇴 Salva a Colombia con el Tigre y JoseManuel 🇨🇴</h1>
-    <p>Abelardo de la Espriella contra El Parto Histérico 💀</p>
+    <p data-i18n-html="subtitle">Abelardo de la Espriella contra El Parto Histérico 💀</p>
     <div class="flagbar" aria-hidden="true"></div>
   </header>
 
@@ -192,8 +192,8 @@
 
     <!-- START / NAME -->
     <div id="startScreen" class="overlay">
-      <h2>¡Bienvenido, comandante!</h2>
-      <p>Pilotas a <b style="color:#fff">Abelardo "El Tigre" de la Espriella</b> y
+      <h2 data-i18n="welcome">¡Bienvenido, comandante!</h2>
+      <p data-i18n-html="pilots">Pilotas a <b style="color:#fff">Abelardo "El Tigre" de la Espriella</b> y
          <b style="color:#fff">José Manuel "El Profe" Restrepo</b> (se alternan por mundo).<br>
          Derriba a los jefes del Parto Histérico antes de que aterricen.</p>
       <div>
@@ -203,14 +203,15 @@
         <span class="tag">La Cacica Quilcué</span><span class="tag">La Heredera Pizarro</span>
         <span class="tag">Barbie Sarabia</span><span class="tag">La Doctora Guerrero</span>
       </div>
-      <input type="text" id="nameInput" maxlength="14" placeholder="Escribe tu nombre" autocomplete="off" enterkeyhint="go">
-      <button id="startBtn">EMPEZAR ▶</button>
-      <div class="controls-help">
+      <input type="text" id="nameInput" maxlength="14" placeholder="Escribe tu nombre" data-i18n-ph="namePh" autocomplete="off" enterkeyhint="go">
+      <button id="startBtn" data-i18n="start">EMPEZAR ▶</button>
+      <button id="rankBtn" class="secondary" data-i18n="seeRanking">🏆 Ver ranking</button>
+      <div class="controls-help" data-i18n-html="controls">
         📱 <b>Móvil:</b> desliza el dedo para mover. El disparo es automático.<br>
         💻 <b>PC:</b> ⬅️ ➡️ mover &nbsp;•&nbsp; ESPACIO / clic = disparar &nbsp;•&nbsp; P = pausa
       </div>
       <div class="share" data-ctx="invite">
-        <span class="share-lbl">Compartir:</span>
+        <span class="share-lbl" data-i18n="shareInvite">Compartir:</span>
         <button class="shareBtn wa" data-net="whatsapp" data-ctx="invite">WhatsApp</button>
         <button class="shareBtn xx" data-net="x" data-ctx="invite">X</button>
         <button class="shareBtn fb" data-net="facebook" data-ctx="invite">Facebook</button>
@@ -222,51 +223,65 @@
       <h2 id="overTitle">FIN DE LA PARTIDA</h2>
       <p id="overMsg"></p>
       <div class="board" id="globalBoard" style="display:none;">
-        <strong style="color:var(--accent);font-size:13px;">🌐 RÉCORD UNIVERSAL</strong>
+        <strong style="color:var(--accent);font-size:13px;" data-i18n="boardGlobal">🌐 RÉCORD UNIVERSAL</strong>
         <ol id="globalList"></ol>
       </div>
       <div class="board">
-        <strong style="color:var(--accent);font-size:13px;">🏆 Top 5 (este dispositivo)</strong>
+        <strong style="color:var(--accent);font-size:13px;" data-i18n="boardLocal">🏆 Top 5 (este dispositivo)</strong>
         <ol id="scoreList"></ol>
       </div>
-      <button id="againBtn">JUGAR DE NUEVO 🔁</button>
+      <button id="againBtn" data-i18n="again">JUGAR DE NUEVO 🔁</button>
     </div>
 
     <!-- PAUSE -->
     <div id="pauseScreen" class="overlay hidden">
-      <h2>⏸️ PAUSA</h2>
-      <p>El juego está en pausa.</p>
-      <button id="resumeBtn">CONTINUAR ▶</button>
-      <button id="quitBtn" class="secondary">Salir al menú</button>
+      <h2 data-i18n="pauseTitle">⏸️ PAUSA</h2>
+      <p data-i18n="pauseMsg">El juego está en pausa.</p>
+      <button id="resumeBtn" data-i18n="resume">CONTINUAR ▶</button>
+      <button id="quitBtn" class="secondary" data-i18n="quit">Salir al menú</button>
     </div>
 
     <!-- VICTORIA (derrotaste al último villano) -->
     <div id="winScreen" class="overlay hidden">
-      <h2 style="color:var(--good)">🎉 ¡GANASTE! 🇨🇴</h2>
+      <h2 style="color:var(--good)" data-i18n="winTitle">🎉 ¡GANASTE! 🇨🇴</h2>
       <p id="winMsg"></p>
       <img id="winImg" alt="Abelardo y José Manuel — campaña" style="display:none;max-width:100%;max-height:34vh;border-radius:12px;border:2px solid var(--accent);margin:6px 0;">
       <div class="share" data-ctx="win">
-        <span class="share-lbl">Compartir tu logro:</span>
+        <span class="share-lbl" data-i18n="shareWin">Compartir tu logro:</span>
         <button class="shareBtn wa" data-net="whatsapp" data-ctx="win">WhatsApp</button>
         <button class="shareBtn xx" data-net="x" data-ctx="win">X</button>
         <button class="shareBtn fb" data-net="facebook" data-ctx="win">Facebook</button>
-        <button class="shareBtn cp" data-net="copy" data-ctx="win">Copiar</button>
+        <button class="shareBtn cp" data-net="copy" data-ctx="win" data-i18n="copy">Copiar</button>
       </div>
-      <button id="winAgainBtn" class="secondary">JUGAR DE NUEVO 🔁</button>
+      <button id="winAgainBtn" class="secondary" data-i18n="again">JUGAR DE NUEVO 🔁</button>
+    </div>
+
+    <!-- RANKING (desde el menú) -->
+    <div id="rankScreen" class="overlay hidden">
+      <h2 data-i18n="rankTitle">🏆 Ranking</h2>
+      <div class="board" id="rankGlobalBoard">
+        <strong style="color:var(--accent);font-size:13px;" data-i18n="boardGlobal">🌐 RÉCORD UNIVERSAL</strong>
+        <ol id="rankGlobalList"></ol>
+      </div>
+      <div class="board">
+        <strong style="color:var(--accent);font-size:13px;" data-i18n="boardLocal">🏆 Top 5 (este dispositivo)</strong>
+        <ol id="rankLocalList"></ol>
+      </div>
+      <button id="rankBackBtn" data-i18n="back">⬅ Volver</button>
     </div>
   </div>
 
   <div id="hud">
     <div class="stat">👤 <b id="hPlayer">—</b></div>
     <div class="stat">🌍 <b id="hWorld">1</b></div>
-    <div class="stat">Nv <b id="hLevel">1</b></div>
-    <div class="stat">Pts <b id="hScore">0</b></div>
+    <div class="stat"><span data-i18n="hudLevel">Nv</span> <b id="hLevel">1</b></div>
+    <div class="stat"><span data-i18n="hudPts">Pts</span> <b id="hScore">0</b></div>
     <div class="stat" id="lives"><span id="hLives">♥♥♥</span></div>
     <button id="muteBtn" title="Silenciar / activar sonido">🔊</button>
-    <button id="pauseBtn" class="hidden">⏸ Pausa</button>
+    <button id="pauseBtn" class="hidden" data-i18n="pauseBtn">⏸ Pausa</button>
   </div>
 
-  <div id="sig">Creado con amoor por la patria por
+  <div id="sig"><span data-i18n="sigPre">Creado con amoor por la patria por</span>
     <a href="https://x.com/NiThiOso" target="_blank" rel="noopener noreferrer">@NiThiOso</a> 🐯🇨🇴
   </div>
 </div>
@@ -289,6 +304,113 @@
    ===================================================================== */
 (function(){
 "use strict";
+
+// ========================================================
+//  IDIOMA (es / en) según el navegador
+// ========================================================
+const _nav = (typeof navigator!=='undefined') ? navigator : {};
+const LANG = String(_nav.language || _nav.userLanguage || 'es').toLowerCase().indexOf('en')===0 ? 'en' : 'es';
+const STR = {
+  es: {
+    subtitle:'Abelardo de la Espriella contra El Parto Histérico 💀',
+    welcome:'¡Bienvenido, comandante!',
+    pilots:'Pilotas a <b style="color:#fff">Abelardo "El Tigre" de la Espriella</b> y <b style="color:#fff">José Manuel "El Profe" Restrepo</b> (se alternan por mundo).<br>Derriba a los jefes del Parto Histérico antes de que aterricen.',
+    namePh:'Escribe tu nombre',
+    start:'EMPEZAR ▶',
+    seeRanking:'🏆 Ver ranking',
+    controls:'📱 <b>Móvil:</b> desliza el dedo para mover. El disparo es automático.<br>💻 <b>PC:</b> ⬅️ ➡️ mover &nbsp;•&nbsp; ESPACIO / clic = disparar &nbsp;•&nbsp; P = pausa',
+    shareInvite:'Compartir:', shareWin:'Compartir tu logro:', copy:'Copiar',
+    boardGlobal:'🌐 RÉCORD UNIVERSAL', boardLocal:'🏆 Top 5 (este dispositivo)',
+    again:'JUGAR DE NUEVO 🔁',
+    pauseTitle:'⏸️ PAUSA', pauseMsg:'El juego está en pausa.', resume:'CONTINUAR ▶', quit:'Salir al menú',
+    winTitle:'🎉 ¡GANASTE! 🇨🇴',
+    rankTitle:'🏆 Ranking', back:'⬅ Volver',
+    hudLevel:'Nv', hudPts:'Pts', pauseBtn:'⏸ Pausa',
+    sigPre:'Creado con amoor por la patria por',
+    emptyLocal:'Aún no hay puntajes. ¡Sé el primero!',
+    emptyGlobal:'Sin datos universales todavía. ¡Sé el primero!',
+    loadingGlobal:'Cargando récord universal…',
+    level:'NIVEL', pilotsShort:(n)=>'Pilotas a '+n,
+    bossPrefix:(final)=> final?'¡JEFE FINAL: ':'¡JEFE: ',
+    bossFinalSub:'¡La batalla decisiva por la patria! 🐯',
+    phase:(name,ph)=>'¡'+name+' — FASE '+ph+'!',
+    phaseSub:'¡Último esfuerzo, firmes por la patria! 🐯',
+    defeated:(fem)=> fem?'DERROTADA':'DERROTADO',
+    bossLabel:(final,name,ph,mx)=> (final?'JEFE FINAL: ':'JEFE: ')+name+(final?(' — FASE '+ph+'/'+mx):''),
+    armaUp:(lv)=>'¡ARMA Lv.'+lv+'!',
+    overTitle:'☠️ PARTIDA TERMINADA',
+    overMsg:(name,lvl,sc)=>'<b style="color:#fff">'+name+'</b>, llegaste al nivel <b>'+lvl+'</b> con <b style="color:var(--good)">'+sc+'</b> puntos.',
+    worldsLine:(w)=>'🐯 Mundos conquistados: <b>'+w+'</b> — ¡Firmes por la patria! 🫡',
+    rank1:'🥇 ¡Nuevo récord! Eres el #1.', rankTop:(r)=>'¡Entraste al Top 5 (#'+r+')!',
+    winMsg:(name,sc,w)=>'<b style="color:#fff">'+name+'</b>, ¡<b>ganaste salvando a Colombia</b>! 🇨🇴<br><br>'+
+      'Ahora tu paso para salvarla es <b>marcar la X sobre el Tigre y José Manuel</b> este <b>21 de junio</b>.<br>'+
+      '¡Vamos firmes por la patria! 🐯🫡<br><br>Puntaje: <b style="color:var(--good)">'+sc+'</b> · Mundos: <b>'+w+'</b>',
+    speakWin:'¡Ganaste salvando a Colombia! Marca la X por el Tigre y José Manuel este 21 de junio. ¡Firmes por la patria!',
+    copied:'¡Copiado! Pégalo donde quieras. 🐯🇨🇴',
+    shareWinTxt:(sc,w)=>'¡Gané Salva a Colombia con el Tigre y JoseManuel! 🐯🇨🇴 Puntaje: '+sc+' · Mundos: '+w+'. ¡Firmes por la patria! 🫡',
+    shareInviteTxt:()=>'¡Juega Salva a Colombia con el Tigre y JoseManuel! 🐯🇨🇴 Derrota al Parto Histérico. ¡Firmes por la patria! 🫡',
+    cries:['¡POR LA PATRIA, MILAGRO! 🙏🐯','¡FIRMES POR LA PATRIA! 🫡','¡EL TIGRE RUGE POR COLOMBIA! 🐯🇨🇴',
+      '¡DEFENSORES DE LA PATRIA, DE PIE! 🛡️🇨🇴','¡COLOMBIA SE RESPETA, CARAJO! 🇨🇴','¡FUERZA, FE Y PATRIA! 🙏🐯',
+      '¡NI UN PASO ATRÁS! 🫡','¡GARRA Y CORAZÓN POR COLOMBIA! 🐯❤️','¡LOS TIGRES NO SE RINDEN! 🐯🔥',
+      '¡DESPERTÓ EL TIGRE QUE LLEVAS DENTRO! 🐯','¡CON LA PATRIA NO SE JUEGA! 🇨🇴','¡ABELARDO Y JOSEMANUEL, FIRMES! 🐯🤝',
+      '¡MÁS TIGRE QUE NUNCA! 🐯🔥','¡PATRIA, FAMILIA Y LIBERTAD! 🇨🇴🙏','¡RUGE COLOMBIA, RUGE! 🐯',
+      '¡UNIDOS SOMOS UNA MANADA! 🐯🐯🐯','¡HONOR Y PATRIA SIEMPRE! 🫡🇨🇴']
+  },
+  en: {
+    subtitle:'Abelardo de la Espriella vs. The Hysterical Pact 💀',
+    welcome:'Welcome, commander!',
+    pilots:'You pilot <b style="color:#fff">Abelardo "The Tiger" de la Espriella</b> and <b style="color:#fff">José Manuel "The Prof" Restrepo</b> (they alternate each world).<br>Shoot down the bosses of the Hysterical Pact before they land.',
+    namePh:'Enter your name',
+    start:'START ▶',
+    seeRanking:'🏆 Leaderboard',
+    controls:'📱 <b>Mobile:</b> drag your finger to move. Auto-fire.<br>💻 <b>PC:</b> ⬅️ ➡️ move &nbsp;•&nbsp; SPACE / click = shoot &nbsp;•&nbsp; P = pause',
+    shareInvite:'Share:', shareWin:'Share your win:', copy:'Copy',
+    boardGlobal:'🌐 WORLD RECORD', boardLocal:'🏆 Top 5 (this device)',
+    again:'PLAY AGAIN 🔁',
+    pauseTitle:'⏸️ PAUSED', pauseMsg:'The game is paused.', resume:'RESUME ▶', quit:'Quit to menu',
+    winTitle:'🎉 YOU WON! 🇨🇴',
+    rankTitle:'🏆 Leaderboard', back:'⬅ Back',
+    hudLevel:'Lv', hudPts:'Pts', pauseBtn:'⏸ Pause',
+    sigPre:'Made with amoor for the homeland by',
+    emptyLocal:'No scores yet. Be the first!',
+    emptyGlobal:'No world data yet. Be the first!',
+    loadingGlobal:'Loading world record…',
+    level:'LEVEL', pilotsShort:(n)=>'You play as '+n,
+    bossPrefix:(final)=> final?'FINAL BOSS: ':'BOSS: ',
+    bossFinalSub:'The decisive battle for the homeland! 🐯',
+    phase:(name,ph)=>name+' — PHASE '+ph+'!',
+    phaseSub:'One last push, firm for the homeland! 🐯',
+    defeated:(fem)=>'DEFEATED',
+    bossLabel:(final,name,ph,mx)=> (final?'FINAL BOSS: ':'BOSS: ')+name+(final?(' — PHASE '+ph+'/'+mx):''),
+    armaUp:(lv)=>'WEAPON Lv.'+lv+'!',
+    overTitle:'☠️ GAME OVER',
+    overMsg:(name,lvl,sc)=>'<b style="color:#fff">'+name+'</b>, you reached level <b>'+lvl+'</b> with <b style="color:var(--good)">'+sc+'</b> points.',
+    worldsLine:(w)=>'🐯 Worlds conquered: <b>'+w+'</b> — Firm for the homeland! 🫡',
+    rank1:'🥇 New record! You are #1.', rankTop:(r)=>'You made the Top 5 (#'+r+')!',
+    winMsg:(name,sc,w)=>'<b style="color:#fff">'+name+'</b>, you <b>won and saved Colombia</b>! 🇨🇴<br><br>'+
+      'Now your move to save it: <b>vote the X for the Tiger and José Manuel</b> this <b>June 21</b>.<br>'+
+      'Firm for the homeland! 🐯🫡<br><br>Score: <b style="color:var(--good)">'+sc+'</b> · Worlds: <b>'+w+'</b>',
+    speakWin:'You won and saved Colombia! Vote the X for the Tiger and José Manuel this June 21. Firm for the homeland!',
+    copied:'Copied! Paste it anywhere. 🐯🇨🇴',
+    shareWinTxt:(sc,w)=>'I beat Save Colombia with the Tiger & JoseManuel! 🐯🇨🇴 Score: '+sc+' · Worlds: '+w+'. Firm for the homeland! 🫡',
+    shareInviteTxt:()=>'Play Save Colombia with the Tiger & JoseManuel! 🐯🇨🇴 Defeat the Hysterical Pact. Firm for the homeland! 🫡',
+    cries:['FOR THE HOMELAND! 🙏🐯','FIRM FOR THE HOMELAND! 🫡','THE TIGER ROARS FOR COLOMBIA! 🐯🇨🇴',
+      'DEFENDERS OF THE HOMELAND, RISE! 🛡️🇨🇴','COLOMBIA DEMANDS RESPECT! 🇨🇴','STRENGTH, FAITH & HOMELAND! 🙏🐯',
+      'NOT ONE STEP BACK! 🫡','CLAWS AND HEART FOR COLOMBIA! 🐯❤️','THE TIGERS NEVER SURRENDER! 🐯🔥',
+      'THE TIGER WITHIN HAS AWAKENED! 🐯','DON\'T MESS WITH THE HOMELAND! 🇨🇴','ABELARDO & JOSEMANUEL, FIRM! 🐯🤝',
+      'MORE TIGER THAN EVER! 🐯🔥','HOMELAND, FAMILY & FREEDOM! 🇨🇴🙏','ROAR, COLOMBIA, ROAR! 🐯',
+      'UNITED WE ARE A PACK! 🐯🐯🐯','HONOR AND HOMELAND ALWAYS! 🫡🇨🇴']
+  }
+};
+const TR = STR[LANG];
+// Aplica los textos estáticos marcados con data-i18n / data-i18n-html / data-i18n-ph
+function applyI18n(){
+  try{ document.documentElement.lang = LANG; }catch(e){}
+  if(!document.querySelectorAll) return;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const v=TR[el.dataset.i18n]; if(typeof v==='string') el.textContent=v; });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{ const v=TR[el.dataset.i18nHtml]; if(typeof v==='string') el.innerHTML=v; });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ const v=TR[el.dataset.i18nPh]; if(typeof v==='string') el.placeholder=v; });
+}
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -317,6 +439,12 @@ const pauseBtn    = document.getElementById('pauseBtn');
 const muteBtn     = document.getElementById('muteBtn');
 const resumeBtn   = document.getElementById('resumeBtn');
 const quitBtn     = document.getElementById('quitBtn');
+const rankBtn        = document.getElementById('rankBtn');
+const rankScreen     = document.getElementById('rankScreen');
+const rankBackBtn    = document.getElementById('rankBackBtn');
+const rankGlobalBoard= document.getElementById('rankGlobalBoard');
+const rankGlobalList = document.getElementById('rankGlobalList');
+const rankLocalList  = document.getElementById('rankLocalList');
 const scoreList   = document.getElementById('scoreList');
 const globalBoard = document.getElementById('globalBoard');
 const globalList  = document.getElementById('globalList');
@@ -360,22 +488,23 @@ function saveScore(name, score, worlds){
   try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch(e){}
   return list;
 }
-// Pinta la lista del Top 5, resaltando el puntaje recién logrado
-function renderScores(highlightName, highlightScore){
-  const list = loadScores();
-  scoreList.innerHTML = '';
-  if(!list.length){
-    scoreList.innerHTML = '<div class="empty">Aún no hay puntajes. ¡Sé el primero!</div>';
-    return;
-  }
-  let highlighted = false;
-  list.forEach(e=>{
+// Pinta una lista de puntajes en un <ol> (saneando y resaltando uno)
+function renderList(ol, entries, emptyMsg, hiName, hiScore){
+  ol.innerHTML = '';
+  if(!entries || !entries.length){ ol.innerHTML = '<div class="empty">'+emptyMsg+'</div>'; return; }
+  let hl=false;
+  entries.forEach(e=>{
+    const name=safeName(e.name), score=safeInt(e.score,1e9), worlds=safeInt(e.worlds,9999);
     const li = document.createElement('li');
-    const isMe = !highlighted && e.name===highlightName && e.score===highlightScore;
-    if(isMe){ li.classList.add('me'); highlighted = true; }
-    li.innerHTML = '<span class="nm">'+escapeHtml(e.name)+'</span><span class="sc">'+e.score+'</span>';
-    scoreList.appendChild(li);
+    if(!hl && hiName!=null && name===hiName && score===hiScore){ li.classList.add('me'); hl=true; }
+    const w = worlds>0 ? ' <span style="opacity:.7">🐯'+worlds+'</span>' : '';
+    li.innerHTML = '<span class="nm">'+escapeHtml(name)+w+'</span><span class="sc">'+score+'</span>';
+    ol.appendChild(li);
   });
+}
+// Pinta el Top 5 local
+function renderScores(highlightName, highlightScore){
+  renderList(scoreList, loadScores(), TR.emptyLocal, highlightName, highlightScore);
 }
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -432,20 +561,25 @@ function submitGlobalScore(name, score, worlds){
 function renderGlobalScores(list, hiName, hiScore){
   if(!globalList) return;
   globalBoard.style.display = '';
-  globalList.innerHTML = '';
-  if(!list || !list.length){
-    globalList.innerHTML = '<div class="empty">Sin datos universales todavía. ¡Sé el primero!</div>';
-    return;
+  renderList(globalList, list, TR.emptyGlobal, hiName, hiScore);
+}
+
+// ---------- Pantalla de RANKING (desde el menú) ----------
+function showRanking(){
+  renderList(rankLocalList, loadScores(), TR.emptyLocal);
+  if(onlineEnabled()){
+    rankGlobalBoard.style.display = '';
+    rankGlobalList.innerHTML = '<div class="empty">'+TR.loadingGlobal+'</div>';
+    fetchGlobalScores().then(l=> renderList(rankGlobalList, mergeGlobal(l||[]), TR.emptyGlobal));
+  } else {
+    rankGlobalBoard.style.display = 'none';
   }
-  let hl=false;
-  list.forEach(e=>{
-    const name=safeName(e.name), score=safeInt(e.score,1e9), worlds=safeInt(e.worlds,9999);
-    const li=document.createElement('li');
-    if(!hl && name===hiName && score===hiScore){ li.classList.add('me'); hl=true; }
-    const wtxt = worlds>0 ? ' <span style="opacity:.7">🐯'+worlds+'</span>' : '';
-    li.innerHTML = '<span class="nm">'+escapeHtml(name)+wtxt+'</span><span class="sc">'+score+'</span>';
-    globalList.appendChild(li);
-  });
+  startScreen.classList.add('hidden');
+  rankScreen.classList.remove('hidden');
+}
+function hideRanking(){
+  rankScreen.classList.add('hidden');
+  startScreen.classList.remove('hidden');
 }
 
 // ⚠️ MODO PRUEBA: casi invencible y enemigos flojos para llegar al final y
@@ -1136,8 +1270,8 @@ function buildWave(level){
     state.boss = createBoss(level);
     state.formationDir = 1; state.formationT = 0;
     const t = state.boss.type.name.toUpperCase();
-    showBanner((state.boss.finalBoss?'¡JEFE FINAL: ':'¡JEFE: ')+t+'!', '#ff3b5c', 26, 2.0,
-               state.boss.finalBoss?'¡La batalla decisiva por la patria! 🐯':'');
+    showBanner(TR.bossPrefix(state.boss.finalBoss)+t+'!', '#ff3b5c', 26, 2.0,
+               state.boss.finalBoss?TR.bossFinalSub:'');
     return;
   }
   const cols = 6;
@@ -1167,7 +1301,7 @@ function buildWave(level){
   }
   state.formationDir = 1;
   state.formationT = 0;
-  showBanner('NIVEL '+level, '#ffcf33', 30, 1.8, 'Pilotas a '+currentHero().name);
+  showBanner(TR.level+' '+level, '#ffcf33', 30, 1.8, TR.pilotsShort(currentHero().name));
 }
 
 // ========================================================
@@ -1666,8 +1800,8 @@ function onBossPhase(b){
   addShake(10, 0.5);
   spawnExplosion(b.x, b.y, '#ffffff', 18);
   sfxBossHit(); tone(200,0.18,0.05,'square');
-  showBanner('¡'+b.type.name.toUpperCase()+' — FASE '+b.phase+'!', '#ff3b5c', 24, 1.6,
-             b.phase>=3 ? '¡Último esfuerzo, firmes por la patria! 🐯' : '');
+  showBanner(TR.phase(b.type.name.toUpperCase(), b.phase), '#ff3b5c', 24, 1.6,
+             b.phase>=3 ? TR.phaseSub : '');
 }
 // Lógica del jefe: se mueve de lado a lado y lanza ráfagas de disparos.
 // El jefe final (Petro) escala en 3 fases según su vida.
@@ -1743,11 +1877,7 @@ function winGame(){
   pauseScreen.classList.add('hidden');
   const finalScore = state.score, worlds = state.worlds;
   saveScore(state.playerName, finalScore, worlds);
-  winMsg.innerHTML =
-    '<b style="color:#fff">'+escapeHtml(state.playerName)+'</b>, ¡<b>ganaste salvando a Colombia</b>! 🇨🇴<br><br>'+
-    'Ahora tu paso para salvarla es <b>marcar la X sobre el Tigre y José Manuel</b> este <b>21 de junio</b>.<br>'+
-    '¡Vamos firmes por la patria! 🐯🫡<br><br>'+
-    'Puntaje: <b style="color:var(--good)">'+finalScore+'</b> · Mundos: <b>'+worlds+'</b>';
+  winMsg.innerHTML = TR.winMsg(escapeHtml(state.playerName), finalScore, worlds);
   // imagen de campaña (si carga)
   winImg.style.display='none';
   winImg.onload = ()=>{ winImg.style.display=''; };
@@ -1757,7 +1887,7 @@ function winGame(){
   // celebración sonora
   sfxFanfare();
   setTimeout(sfxFanfare, 700);
-  speak('¡Ganaste salvando a Colombia! Marca la X por el Tigre y José Manuel este 21 de junio. ¡Firmes por la patria!');
+  speak(TR.speakWin);
   // registra el puntaje en el récord universal (no en modo prueba)
   if(onlineEnabled() && !TEST_MODE) submitGlobalScore(state.playerName, finalScore, worlds);
 }
@@ -1789,10 +1919,10 @@ const TIGER_CRIES = [
 ];
 // Celebración al ganar un mundo (derrotar a un jefe): tigres, banderas y grito
 function celebrateWorld(bossType){
-  const cry  = TIGER_CRIES[Math.floor(Math.random()*TIGER_CRIES.length)];
-  const verb = bossType && bossType.fem ? 'DERROTADA' : 'DERROTADO';
-  const name = bossType ? bossType.name.toUpperCase() : 'EL ENEMIGO';
-  showBanner('🐯 ¡'+name+' '+verb+'! 🐯', '#ffd100', 22, 3.4, cry);
+  const cry  = TR.cries[Math.floor(Math.random()*TR.cries.length)];
+  const verb = TR.defeated(bossType && bossType.fem);
+  const name = bossType ? bossType.name.toUpperCase() : '';
+  showBanner('🐯 '+name+' '+verb+'! 🐯', '#ffd100', 22, 3.4, cry);
   sfxFanfare();                 // fanfarria de victoria
   speak(cry);                   // ¡el tigre grita el lema!
   // lluvia de tigres y banderas de Colombia (más banderas y otros tigres)
@@ -1823,7 +1953,7 @@ function spawnPowerup(x,y){
 function applyPowerup(pu){
   const p = state.player;
   if(pu.type==='weapon'){
-    if(p.weapon<5){ p.weapon++; addPopup(p.x, p.y-30, '¡ARMA Lv.'+p.weapon+'!'); }
+    if(p.weapon<5){ p.weapon++; addPopup(p.x, p.y-30, TR.armaUp(p.weapon)); }
     else { state.score += 200; addPopup(p.x, p.y-30, '+200'); }   // ya al máximo
   }
   else if(pu.type==='rapid')  p.rapidTimer = 9;
@@ -1904,17 +2034,17 @@ function endGame(won){
   renderScores(state.playerName, finalScore);
   // mensaje según la posición lograda en el ranking local
   const rank = list.findIndex(e=> e.name===state.playerName && e.score===finalScore);
-  overTitle.textContent = '☠️ PARTIDA TERMINADA';
-  let msg = '<b style="color:#fff">'+escapeHtml(state.playerName)+'</b>, llegaste al nivel <b>'+state.level+'</b> con <b style="color:var(--good)">'+finalScore+'</b> puntos.';
-  if(worlds>0){ msg += '<br>🐯 Mundos conquistados: <b>'+worlds+'</b> — ¡Firmes por la patria! 🫡'; }
-  if(rank===0){ msg += '<br>🥇 ¡Nuevo récord! Eres el #1.'; }
-  else if(rank>0 && rank<5){ msg += '<br>¡Entraste al Top 5 (#'+(rank+1)+')!'; }
+  overTitle.textContent = TR.overTitle;
+  let msg = TR.overMsg(escapeHtml(state.playerName), state.level, finalScore);
+  if(worlds>0){ msg += '<br>'+TR.worldsLine(worlds); }
+  if(rank===0){ msg += '<br>'+TR.rank1; }
+  else if(rank>0 && rank<5){ msg += '<br>'+TR.rankTop(rank+1); }
   overMsg.innerHTML = msg;
   overScreen.classList.remove('hidden');
   // récord universal (si está configurado): enviar y mostrar (no en modo prueba)
   if(onlineEnabled() && !TEST_MODE){
     globalBoard.style.display='';
-    globalList.innerHTML = '<div class="empty">Cargando récord universal…</div>';
+    globalList.innerHTML = '<div class="empty">'+TR.loadingGlobal+'</div>';
     submitGlobalScore(state.playerName, finalScore, worlds)
       .then(glist=> renderGlobalScores(glist, state.playerName, finalScore));
   }
@@ -1954,8 +2084,7 @@ function render(){
     ctx.fillStyle='#ff3b5c'; ctx.fillRect(bx,by,bw*frac,8);
     ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=1; ctx.strokeRect(bx,by,bw,8);
     ctx.fillStyle='#fff'; ctx.font='bold 11px Arial'; ctx.textAlign='center';
-    ctx.fillText((b.finalBoss?'JEFE FINAL: ':'JEFE: ')+b.type.name.toUpperCase()
-                 +(b.finalBoss?(' — FASE '+b.phase+'/'+b.maxPhase):''), W/2, by+20);
+    ctx.fillText(TR.bossLabel(b.finalBoss, b.type.name.toUpperCase(), b.phase, b.maxPhase), W/2, by+20);
   }
 
   // power-ups que caen
@@ -2103,12 +2232,7 @@ winAgainBtn.addEventListener('click', ()=> startGame(state.playerName||'Anónimo
 const SHARE_URL = 'https://nithioso.github.io/SalvaAcolombia/';
 // Texto según el contexto: 'win' (logro) o 'invite' (invitación desde el menú)
 function shareText(ctx){
-  if(ctx==='win'){
-    return '¡Gané Salva a Colombia con el Tigre y JoseManuel! 🐯🇨🇴 '
-         + 'Puntaje: '+state.score+' · Mundos: '+state.worlds+'. ¡Firmes por la patria! 🫡';
-  }
-  return '¡Juega Salva a Colombia con el Tigre y JoseManuel! 🐯🇨🇴 '
-       + 'Derrota al Parto Histérico. ¡Firmes por la patria! 🫡';
+  return ctx==='win' ? TR.shareWinTxt(state.score, state.worlds) : TR.shareInviteTxt();
 }
 // Abre la red elegida con el texto + enlace
 function shareTo(net, ctx){
@@ -2121,7 +2245,7 @@ function shareTo(net, ctx){
   else if(net==='facebook') link = 'https://www.facebook.com/sharer/sharer.php?u=' + u + '&quote=' + t;
   else if(net==='copy'){
     if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text+' '+SHARE_URL).then(()=> alert('¡Copiado! Pégalo donde quieras. 🐯🇨🇴'), ()=>{});
+      navigator.clipboard.writeText(text+' '+SHARE_URL).then(()=> alert(TR.copied), ()=>{});
     } else { alert(text+' '+SHARE_URL); }
     return;
   }
@@ -2137,9 +2261,12 @@ pauseBtn.addEventListener('click', togglePause);
 muteBtn.addEventListener('click', toggleMute);
 resumeBtn.addEventListener('click', resumeGame);
 quitBtn.addEventListener('click', quitToMenu);
+rankBtn.addEventListener('click', showRanking);
+rankBackBtn.addEventListener('click', hideRanking);
 
-// Inicialización: precarga el último nombre y la preferencia de sonido,
-// pinta el marcador, enfoca el campo de nombre y arranca la animación de menú.
+// Inicialización: aplica el idioma, precarga el último nombre y la preferencia
+// de sonido, pinta el marcador, enfoca el campo de nombre y arranca el menú.
+applyI18n();
 try { nameInput.value = localStorage.getItem(LS_NAME) || ''; } catch(e){}
 try { if(localStorage.getItem('salvaAColombia_audio')==='0'){ audio.on=false; muteBtn.textContent='🔇'; } } catch(e){}
 renderScores();
