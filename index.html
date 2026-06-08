@@ -16,7 +16,7 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="🇨🇴 SalvaAcolombia">
 <meta property="og:description" content="Juego arcade tipo Galaga: Abelardo de la Espriella contra El Pacto Histórico.">
-<meta property="og:url" content="https://gringoinc.github.io/Galaga1/">
+<meta property="og:url" content="https://nithioso.github.io/Galaga1/">
 <meta name="twitter:card" content="summary">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23ce1126'/%3E%3Crect width='64' height='48' fill='%23003893'/%3E%3Crect width='64' height='32' fill='%23ffd100'/%3E%3Ctext x='32' y='46' font-size='42' text-anchor='middle'%3E🐯%3C/text%3E%3C/svg%3E">
 <title>🇨🇴 SalvaAcolombia — Abelardo contra El Pacto Histórico 💀</title>
@@ -204,6 +204,14 @@
       <button id="resumeBtn">CONTINUAR ▶</button>
       <button id="quitBtn" class="secondary">Salir al menú</button>
     </div>
+
+    <!-- VICTORIA (derrotaste al último villano) -->
+    <div id="winScreen" class="overlay hidden">
+      <h2 style="color:var(--good)">🎉 ¡GANASTE! 🇨🇴</h2>
+      <p id="winMsg"></p>
+      <img id="winImg" alt="Abelardo y José Manuel — campaña" style="display:none;max-width:100%;max-height:34vh;border-radius:12px;border:2px solid var(--accent);margin:6px 0;">
+      <button id="winAgainBtn">JUGAR DE NUEVO 🔁</button>
+    </div>
   </div>
 
   <div id="hud">
@@ -268,6 +276,10 @@ const globalBoard = document.getElementById('globalBoard');
 const globalList  = document.getElementById('globalList');
 const overTitle   = document.getElementById('overTitle');
 const overMsg     = document.getElementById('overMsg');
+const winScreen   = document.getElementById('winScreen');
+const winMsg      = document.getElementById('winMsg');
+const winImg      = document.getElementById('winImg');
+const winAgainBtn = document.getElementById('winAgainBtn');
 const hPlayer = document.getElementById('hPlayer');
 const hWorld  = document.getElementById('hWorld');
 const hLevel  = document.getElementById('hLevel');
@@ -1279,6 +1291,7 @@ function startGame(name){
   startScreen.classList.add('hidden');
   overScreen.classList.add('hidden');
   pauseScreen.classList.add('hidden');
+  winScreen.classList.add('hidden');
   pauseBtn.classList.remove('hidden');
   state.running = true;
   state.lastTime = performance.now();
@@ -1582,13 +1595,46 @@ function defeatBoss(){
   state.worlds++;                 // ¡mundo conquistado!
   addPopup(b.x, b.y, '+'+pts);
   spawnExplosion(b.x, b.y, b.type.color, 46);
-  spawnPowerup(b.x, b.y);
   addShake(12, 0.6);
   sfxBossDie();
   state.boss=null;
+  // ¿Era el ÚLTIMO villano (Gustavo Petro)? Entonces se gana el juego.
+  if(state.worlds >= ENEMY_TYPES.length){
+    updateHUD();
+    winGame();
+    return;
+  }
+  spawnPowerup(b.x, b.y);
   state.nextWaveDelay = 2.4;      // deja ver la celebración antes del próximo mundo
   celebrateWorld(b.type);         // tigres + grito de batalla (con género correcto)
   updateHUD();
+}
+
+// ¡VICTORIA FINAL! Derrotaste a Petro (último villano): pantalla de cierre.
+function winGame(){
+  state.running = false; state.paused = false;
+  stopMusic();
+  pauseBtn.classList.add('hidden');
+  pauseScreen.classList.add('hidden');
+  const finalScore = state.score, worlds = state.worlds;
+  saveScore(state.playerName, finalScore, worlds);
+  winMsg.innerHTML =
+    '<b style="color:#fff">'+escapeHtml(state.playerName)+'</b>, ¡<b>ganaste salvando a Colombia</b>! 🇨🇴<br><br>'+
+    'Ahora tu paso para salvarla es <b>marcar la X sobre el Tigre y José Manuel</b> este <b>21 de junio</b>.<br>'+
+    '¡Vamos firmes por la patria! 🐯🫡<br><br>'+
+    'Puntaje: <b style="color:var(--good)">'+finalScore+'</b> · Mundos: <b>'+worlds+'</b>';
+  // imagen de campaña (si carga)
+  winImg.style.display='none';
+  winImg.onload = ()=>{ winImg.style.display=''; };
+  winImg.onerror = ()=>{ winImg.style.display='none'; };
+  winImg.src = 'assets/abelardoyjosemanuel.jpg';
+  winScreen.classList.remove('hidden');
+  // celebración sonora
+  sfxFanfare();
+  setTimeout(sfxFanfare, 700);
+  speak('¡Ganaste salvando a Colombia! Marca la X por el Tigre y José Manuel este 21 de junio. ¡Firmes por la patria!');
+  // registra el puntaje en el récord universal
+  if(onlineEnabled()) submitGlobalScore(state.playerName, finalScore, worlds);
 }
 
 // Gritos de batalla / campaña de los Tigres (se elige uno al azar al ganar)
@@ -1911,6 +1957,7 @@ function beginFromInput(){
 startBtn.addEventListener('click', beginFromInput);
 nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter') beginFromInput(); });
 againBtn.addEventListener('click', ()=> startGame(state.playerName||'Anónimo'));
+winAgainBtn.addEventListener('click', ()=> startGame(state.playerName||'Anónimo'));
 pauseBtn.addEventListener('click', togglePause);
 muteBtn.addEventListener('click', toggleMute);
 resumeBtn.addEventListener('click', resumeGame);
