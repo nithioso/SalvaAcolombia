@@ -417,6 +417,10 @@ function renderGlobalScores(list, hiName, hiScore){
   });
 }
 
+// ⚠️ MODO PRUEBA: casi invencible y enemigos flojos para llegar al final y
+// testear. Para PRODUCCIÓN poner en false (deja el balance normal).
+const TEST_MODE = true;
+
 // ---------- Estado del juego ----------
 const state = {
   running:false, playerName:'', score:0, level:1, lives:3,
@@ -1084,7 +1088,8 @@ function createBoss(level){
   const idx = (Math.floor(level/5) - 1) % ENEMY_TYPES.length;
   const type = ENEMY_TYPES[(idx+ENEMY_TYPES.length)%ENEMY_TYPES.length];
   const isFinal = idx === ENEMY_TYPES.length - 1;     // Petro
-  const hp = isFinal ? 300 : (28 + level*7);          // jefe final épico
+  const hp = TEST_MODE ? (isFinal ? 30 : 12)          // jefes flojos para testear
+                       : (isFinal ? 300 : (28 + level*7));   // jefe final épico
   return { type, x:W/2, y:120, r:isFinal?66:58, vx:(isFinal?52:60)+level*3,
            hp, maxHp:hp, fireTimer:1.6, t:0, alive:true,
            finalBoss:isFinal, phase:1, maxPhase:isFinal?3:1 };
@@ -1325,6 +1330,13 @@ function startGame(name){
   state.player.weapon = 2;
   state.player.shieldTimer = 5;
   state.invuln = 2.0;
+  if(TEST_MODE){
+    // MODO PRUEBA: casi invencible y a tope para llegar rápido al final
+    state.lives = 99;
+    state.player.weapon = 5;
+    state.player.shieldTimer = 1e9;   // escudo permanente
+    state.invuln = 1e9;
+  }
   state.paused = false; state.autofire = false; pointerActive = false;
   initStars();
   buildWave(state.level);
@@ -1354,13 +1366,18 @@ function updateHUD(){
 // pican y disparan con más frecuencia.
 function difficulty(){
   const L = state.level;
+  if(TEST_MODE){
+    // enemigos casi sin disparar y sin picadas, para llegar fácil al final
+    return { formSpeed: 8 + L*3, diveChance: 0, enemyBulletSpeed: 120,
+             enemyFireChance: 0.00008, maxDivers: 1 };
+  }
   return {
     formSpeed: 10 + L*5,
     // los enemigos no pican hasta el nivel 3
     diveChance: Math.max(0, L-2) * 0.0011,
     enemyBulletSpeed: 130 + L*10,
-    // muy pocos disparos al inicio, aumentan poco a poco
-    enemyFireChance: 0.0004 + Math.max(0, L-1) * 0.00045,
+    // disparos enemigos un poco menos frecuentes (balance más amable)
+    enemyFireChance: 0.00035 + Math.max(0, L-1) * 0.00035,
     maxDivers: 1 + Math.floor(L/3)   // picadas simultáneas máximas
   };
 }
@@ -1506,7 +1523,7 @@ function update(dt){
           addPopup(e.x, e.y, '+'+pts);
           spawnExplosion(e.x,e.y,e.type.color);
           sfxExplosion();
-          if(Math.random() < 0.24) spawnPowerup(e.x, e.y);   // suelta power-up
+          if(Math.random() < 0.28) spawnPowerup(e.x, e.y);   // suelta power-up
         } else {
           spawnExplosion(e.x,e.y,'#ffffff',6);
         }
@@ -1710,8 +1727,8 @@ function winGame(){
   sfxFanfare();
   setTimeout(sfxFanfare, 700);
   speak('¡Ganaste salvando a Colombia! Marca la X por el Tigre y José Manuel este 21 de junio. ¡Firmes por la patria!');
-  // registra el puntaje en el récord universal
-  if(onlineEnabled()) submitGlobalScore(state.playerName, finalScore, worlds);
+  // registra el puntaje en el récord universal (no en modo prueba)
+  if(onlineEnabled() && !TEST_MODE) submitGlobalScore(state.playerName, finalScore, worlds);
 }
 
 // Gritos de batalla / campaña de los Tigres (se elige uno al azar al ganar).
@@ -1767,7 +1784,8 @@ function celebrateWorld(bossType){
 // sea fácil potenciarse; la vida extra es la más rara.
 function spawnPowerup(x,y){
   const r=Math.random();
-  const type = r<0.50 ? 'weapon' : (r<0.75 ? 'rapid' : (r<0.92 ? 'shield' : 'life'));
+  // más escudos y corazones que antes
+  const type = r<0.38 ? 'weapon' : (r<0.58 ? 'rapid' : (r<0.82 ? 'shield' : 'life'));
   state.powerups.push({ x, y, vy:80, r:13, type, t:0 });
 }
 // Aplica el efecto al recogerlo
@@ -1778,7 +1796,7 @@ function applyPowerup(pu){
     else { state.score += 200; addPopup(p.x, p.y-30, '+200'); }   // ya al máximo
   }
   else if(pu.type==='rapid')  p.rapidTimer = 9;
-  else if(pu.type==='shield') p.shieldTimer = 7;
+  else if(pu.type==='shield') p.shieldTimer = 9;
   else if(pu.type==='life')   state.lives = Math.min(9, state.lives+1);
   sfxPowerup();
   updateHUD();
@@ -1862,8 +1880,8 @@ function endGame(won){
   else if(rank>0 && rank<5){ msg += '<br>¡Entraste al Top 5 (#'+(rank+1)+')!'; }
   overMsg.innerHTML = msg;
   overScreen.classList.remove('hidden');
-  // récord universal (si está configurado): enviar y mostrar
-  if(onlineEnabled()){
+  // récord universal (si está configurado): enviar y mostrar (no en modo prueba)
+  if(onlineEnabled() && !TEST_MODE){
     globalBoard.style.display='';
     globalList.innerHTML = '<div class="empty">Cargando récord universal…</div>';
     submitGlobalScore(state.playerName, finalScore, worlds)
