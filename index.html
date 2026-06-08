@@ -1825,13 +1825,13 @@ function update(dt){
     const formationCleared = state.enemies.length>0 && state.enemies.every(e=>!e.alive);
     const afterBoss = state.enemies.length===0;   // tras derrotar al jefe del mundo
     if(formationCleared || afterBoss){
-      // al despejar una formación normal: pausa más larga, limpia la pantalla
-      // (balas + recompensas) y anuncia el PRÓXIMO nivel
+      // al despejar una formación normal: pausa para alcanzar a recoger las
+      // recompensas (los power-ups NO se borran: siguen cayendo y se pueden
+      // recoger durante la pausa y en el siguiente nivel) y anuncia el próximo
       if(formationCleared && !state.advancing){
         state.advancing = true;
-        state.nextWaveDelay = 1.6;     // respiro para limpiar y sentir el avance
-        state.enemyBullets = [];       // limpia balas enemigas
-        state.powerups = [];           // limpia recompensas pendientes
+        state.nextWaveDelay = 1.8;     // respiro para recoger premios y sentir el avance
+        state.enemyBullets = [];       // limpia solo las balas enemigas (amenazas)
         const nextLvl = state.level+1;
         const heroName = HEROES[Math.floor((nextLvl-1)/5) % HEROES.length].name;
         addFlash('#9ad8ff', 0.3);
