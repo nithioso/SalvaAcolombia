@@ -2462,26 +2462,34 @@ function makeResultCard(){
   g.fillStyle='#8b93c4'; g.font='15px Arial'; g.fillText('nithioso.github.io/SalvaAcolombia', 44, 296);
   return c;
 }
-// Comparte la tarjeta como imagen (archivo) o la descarga si no se puede
+// Comparte la tarjeta como imagen (archivo) CON texto y enlace; si no se puede,
+// descarga la imagen y copia el texto+enlace al portapapeles.
 function shareCard(){
   let c; try{ c = makeResultCard(); }catch(e){ return; }
-  const txt = shareText('win');
+  const msg = shareText('win') + ' ' + SHARE_URL;     // texto + enlace
   const dl = ()=>{ try{ const a=document.createElement('a'); a.download='SalvaAColombia.png'; a.href=c.toDataURL('image/png'); a.click(); }catch(e){} };
+  const copyAndDownload = (blob)=>{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(msg).then(()=> alert(TR.copied), ()=>{});
+    }
+    if(blob){ const a=document.createElement('a'); a.download='SalvaAColombia.png'; a.href=URL.createObjectURL(blob); a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),8000); }
+    else dl();
+  };
   if(c.toBlob){
     c.toBlob(blob=>{
-      if(!blob){ dl(); return; }
       try{
-        const file = new File([blob],'SalvaAColombia.png',{type:'image/png'});
-        if(navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
-          navigator.share({ files:[file], text:txt }).catch(()=>{});
-          return;
+        if(blob && navigator.canShare){
+          const file = new File([blob],'SalvaAColombia.png',{type:'image/png'});
+          if(navigator.canShare({files:[file]}) && navigator.share){
+            // comparte imagen + texto + enlace
+            navigator.share({ files:[file], text:msg, url:SHARE_URL, title:'Salva a Colombia' }).catch(()=>{});
+            return;
+          }
         }
       }catch(e){}
-      const a=document.createElement('a'); a.download='SalvaAColombia.png';
-      a.href=URL.createObjectURL(blob); a.click();
-      setTimeout(()=>URL.revokeObjectURL(a.href), 8000);
+      copyAndDownload(blob);
     }, 'image/png');
-  } else { dl(); }
+  } else { copyAndDownload(null); }
 }
 // Abre la red elegida con el texto + enlace
 function shareTo(net, ctx){
