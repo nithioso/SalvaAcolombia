@@ -43,6 +43,11 @@ personajes del **Parto Histérico** antes de que aterricen.
 - **Detalles:** cada protagonista dispara de un **color distinto** (Abelardo
   dorado, Restrepo azul), contador de **Mundo** en el HUD, y favicon de
   **tigre con la bandera de Colombia** 🐯🇨🇴.
+- **Multilenguaje (es/en):** la interfaz y los mensajes se muestran en **español
+  o inglés** según el idioma del navegador (los apodos de los villanos quedan en
+  español como guiño local).
+- **Botón de Ranking** en el inicio para ver el récord universal y el Top 5 local
+  sin tener que jugar una partida.
 - **Récord universal:** ranking en línea **compartido entre todos los
   jugadores** (mejor puntaje por persona + mundos conquistados). Ver la sección
   *Récord universal* para activarlo. Además se guarda un **Top 5 local** en el
