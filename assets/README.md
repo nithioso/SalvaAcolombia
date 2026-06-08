@@ -32,6 +32,20 @@ Usa exactamente estos nombres (se acepta `.png`, `.jpg`, `.jpeg` o `.webp`):
 | Laura Sarabia          | `sarabia.png`      |
 | Juliana Guerrero       | `guerrero.png`     |
 
+## Cómo subir las fotos (sin instalar nada)
+
+Por la web de GitHub:
+
+1. Ve a **https://github.com/GringoInc/Galaga1/upload/main/assets**
+   (o en el repo: carpeta `assets` → **Add file → Upload files**).
+2. Arrastra tus imágenes con los **nombres exactos** de la tabla (p. ej.
+   `sarabia.png`, `guerrero.png`, `restrepo.png`).
+3. **Commit changes** a `main`. En 1–2 min GitHub Pages se actualiza y la foto
+   aparece en el juego (refresca con `Ctrl/Cmd + Shift + R`).
+
+La foto local **siempre gana** sobre la de Wikipedia, así que es la forma
+garantizada de fijar la cara de cualquier personaje.
+
 ## Recomendaciones
 
 - Imágenes **cuadradas** (por ejemplo 256×256 px) y centradas en la cara se ven
