@@ -20,6 +20,7 @@ Usa exactamente estos nombres (se acepta `.png`, `.jpg`, `.jpeg` o `.webp`):
 | Personaje              | Archivo            |
 |------------------------|--------------------|
 | Abelardo (jugador)     | `abelardo.png`     |
+| José Manuel Restrepo (jugador) | `restrepo.png` |
 | Gustavo Petro          | `petro.png`        |
 | Iván Cepeda            | `cepeda.png`       |
 | Francia Márquez        | `francia.png`      |

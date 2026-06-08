@@ -159,7 +159,8 @@
     <!-- START / NAME -->
     <div id="startScreen" class="overlay">
       <h2>¡Bienvenido, comandante!</h2>
-      <p>Pilotas a <b style="color:#fff">Abelardo de la Espriella</b>.<br>
+      <p>Pilotas a <b style="color:#fff">Abelardo de la Espriella</b> y
+         <b style="color:#fff">José Manuel Restrepo</b> (se alternan por mundo).<br>
          Derriba a los jefes del Pacto Histórico antes de que aterricen.</p>
       <div>
         <span class="tag">Petro</span><span class="tag">Iván Cepeda</span>
@@ -410,11 +411,8 @@ function roundFace(x,y,r,skin){
   ctx.fill();
 }
 
-// --- Abelardo (jugador): traje, pelo engominado, ceja seria ---
-function drawAbelardo(x,y,r){
-  ctx.save();
-  ctx.translate(x,y);
-  // camiseta de la Selección Colombia (cuerpo amarillo)
+// Camiseta de la Selección Colombia (asume el lienzo ya trasladado al centro)
+function drawJersey(r){
   const jg=ctx.createLinearGradient(0,r*0.5,0,r*1.9);
   jg.addColorStop(0,'#ffe14d'); jg.addColorStop(1,'#f6c500');
   ctx.fillStyle=jg;
@@ -444,6 +442,13 @@ function drawAbelardo(x,y,r){
   ctx.font='bold '+(r*0.34)+'px Arial';
   ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText('10', 0, r*1.52);
+}
+
+// --- Abelardo (jugador): camiseta, pelo engominado, ceja seria ---
+function drawAbelardo(x,y,r){
+  ctx.save();
+  ctx.translate(x,y);
+  drawJersey(r);
   // cara
   roundFace(x,y,r,'#e8b48c');
   // pelo engominado oscuro hacia atrás
@@ -471,6 +476,40 @@ function drawAbelardo(x,y,r){
   // barba candado leve
   ctx.fillStyle='rgba(40,30,20,.5)';
   ctx.beginPath(); ctx.arc(0,r*0.5,r*0.45,0.2,Math.PI-0.2); ctx.fill();
+  ctx.restore();
+}
+
+// --- José Manuel Restrepo (jugador alterno): gafas, entradas, pelo canoso ---
+function drawRestrepo(x,y,r){
+  ctx.save();
+  ctx.translate(x,y);
+  drawJersey(r);
+  // cara
+  roundFace(x,y,r,'#e8b48c');
+  // pelo corto canoso con entradas marcadas (calvicie frontal)
+  ctx.fillStyle='#9aa0a8';
+  ctx.beginPath(); ctx.ellipse(0,-r*0.62,r*0.72,r*0.3,0,Math.PI,0); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-r*0.74,-r*0.15,r*0.22,r*0.4,0,0,7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(r*0.74,-r*0.15,r*0.22,r*0.4,0,0,7); ctx.fill();
+  // cejas
+  ctx.strokeStyle='#7c818a'; ctx.lineWidth=r*0.09; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-r*0.5,-r*0.16); ctx.lineTo(-r*0.18,-r*0.18); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r*0.5,-r*0.16); ctx.lineTo(r*0.18,-r*0.18); ctx.stroke();
+  // gafas rectangulares
+  ctx.strokeStyle='#2b2b2b'; ctx.lineWidth=r*0.06;
+  ctx.beginPath(); ctx.rect(-r*0.56,-r*0.06,r*0.4,r*0.32); ctx.stroke();
+  ctx.beginPath(); ctx.rect(r*0.16,-r*0.06,r*0.4,r*0.32); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-r*0.16,r*0.08); ctx.lineTo(r*0.16,r*0.08); ctx.stroke();
+  // ojos tras las gafas
+  ctx.fillStyle='#1a1a1a';
+  ctx.beginPath(); ctx.arc(-r*0.36,r*0.1,r*0.08,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(r*0.36,r*0.1,r*0.08,0,7); ctx.fill();
+  // nariz
+  ctx.strokeStyle='#c79066'; ctx.lineWidth=r*0.07;
+  ctx.beginPath(); ctx.moveTo(0,r*0.05); ctx.lineTo(0,r*0.3); ctx.stroke();
+  // boca (sonrisa leve)
+  ctx.strokeStyle='#7a4a3a'; ctx.lineWidth=r*0.08;
+  ctx.beginPath(); ctx.moveTo(-r*0.26,r*0.5); ctx.quadraticCurveTo(0,r*0.6,r*0.26,r*0.5); ctx.stroke();
   ctx.restore();
 }
 
@@ -817,17 +856,20 @@ function drawGuerrero(x,y,r){
 //   img   : nombre base del archivo local opcional en assets/ (sin extensión)
 //   wiki  : título del artículo en Wikipedia (para traer la foto real)
 // Prioridad de la cara: foto local en assets/ → foto de Wikipedia → ilustración.
+// Orden = progresión de jefes (un jefe por mundo). Inicia alternando
+// mujer/hombre (Laura, Bolívar, Juliana…) y termina con los villanos mayores:
+// Iván Cepeda (penúltimo) y Gustavo Petro (jefe final).
 const ENEMY_TYPES = [
-  { name:'Gustavo Petro',      draw:drawPetro,     color:'#d9a679', points:50, img:'assets/petro',     wiki:'Gustavo Petro' },
-  { name:'Iván Cepeda',        draw:drawCepeda,    color:'#e0b389', points:40, img:'assets/cepeda',    wiki:'Iván Cepeda' },
-  { name:'Francia Márquez',    draw:drawFrancia,   color:'#7a4a2b', points:40, img:'assets/francia',   wiki:'Francia Márquez' },
-  { name:'Roy Barreras',       draw:drawRoy,       color:'#dcab80', points:30, img:'assets/roy',       wiki:'Roy Barreras' },
+  { name:'Laura Sarabia',      draw:drawSarabia,   color:'#ecc49a', points:30, img:'assets/sarabia',   wiki:'Laura Sarabia',      fem:true },
   { name:'Gustavo Bolívar',    draw:drawBolivar,   color:'#dca97c', points:30, img:'assets/bolivar',   wiki:'Gustavo Bolívar' },
-  { name:'Armando Benedetti',  draw:drawBenedetti, color:'#d9a06f', points:30, img:'assets/benedetti', wiki:'Armando Benedetti' },
-  { name:'Aída Quilcué',       draw:drawQuilcue,   color:'#c98a55', points:30, img:'assets/quilcue',   wiki:'Aída Quilcué' },
-  { name:'María José Pizarro', draw:drawPizarro,   color:'#e7bd93', points:30, img:'assets/pizarro',   wiki:'María José Pizarro' },
-  { name:'Laura Sarabia',      draw:drawSarabia,   color:'#ecc49a', points:30, img:'assets/sarabia',   wiki:'Laura Sarabia' },
-  { name:'Juliana Guerrero',   draw:drawGuerrero,  color:'#e3b485', points:30, img:'assets/guerrero',  wiki:'Juliana Guerrero' }
+  { name:'Juliana Guerrero',   draw:drawGuerrero,  color:'#e3b485', points:30, img:'assets/guerrero',  wiki:'Juliana Guerrero',   fem:true },
+  { name:'Roy Barreras',       draw:drawRoy,       color:'#dcab80', points:35, img:'assets/roy',       wiki:'Roy Barreras' },
+  { name:'Francia Márquez',    draw:drawFrancia,   color:'#7a4a2b', points:35, img:'assets/francia',   wiki:'Francia Márquez',    fem:true },
+  { name:'Armando Benedetti',  draw:drawBenedetti, color:'#d9a06f', points:35, img:'assets/benedetti', wiki:'Armando Benedetti' },
+  { name:'Aída Quilcué',       draw:drawQuilcue,   color:'#c98a55', points:40, img:'assets/quilcue',   wiki:'Aída Quilcué',       fem:true },
+  { name:'María José Pizarro', draw:drawPizarro,   color:'#e7bd93', points:40, img:'assets/pizarro',   wiki:'María José Pizarro', fem:true },
+  { name:'Iván Cepeda',        draw:drawCepeda,    color:'#e0b389', points:45, img:'assets/cepeda',    wiki:'Iván Cepeda' },
+  { name:'Gustavo Petro',      draw:drawPetro,     color:'#d9a679', points:60, img:'assets/petro',     wiki:'Gustavo Petro' }
 ];
 
 // ========================================================
@@ -876,8 +918,19 @@ function loadSprite(base, wikiTitle){
   o.img.src=base+'.'+exts[0];
   return o;
 }
-// Foto del jugador (Abelardo) y fotos de cada enemigo
-const playerSprite = loadSprite('assets/abelardo', 'Abelardo de la Espriella');
+// Protagonistas: se alternan por mundo (Abelardo y José Manuel Restrepo)
+const HEROES = [
+  { name:'Abelardo de la Espriella', draw:drawAbelardo,
+    sprite:loadSprite('assets/abelardo', 'Abelardo de la Espriella') },
+  { name:'José Manuel Restrepo',     draw:drawRestrepo,
+    sprite:loadSprite('assets/restrepo', 'José Manuel Restrepo Abondano') }
+];
+// Devuelve el protagonista del mundo actual (cambia cada 5 niveles)
+function currentHero(){
+  const lvl = Math.max(1, state.level||1);
+  return HEROES[Math.floor((lvl-1)/5) % HEROES.length];
+}
+// Fotos de cada enemigo
 ENEMY_TYPES.forEach(t=>{ t.sprite = loadSprite(t.img, t.wiki); });
 
 // Dibuja una foto recortada en un círculo (estilo "ficha" redonda)
@@ -1005,7 +1058,7 @@ function buildWave(level){
   }
   state.formationDir = 1;
   state.formationT = 0;
-  showBanner('NIVEL '+level);
+  showBanner('NIVEL '+level, '#ffcf33', 30, 1.8, 'Pilotas a '+currentHero().name);
 }
 
 // ========================================================
@@ -1478,21 +1531,38 @@ function defeatBoss(){
   sfxBossDie();
   state.boss=null;
   state.nextWaveDelay = 2.4;      // deja ver la celebración antes del próximo mundo
-  celebrateWorld();               // tigres + lema
+  celebrateWorld(b.type);         // tigres + grito de batalla (con género correcto)
   updateHUD();
 }
 
-// Celebración al ganar un mundo (derrotar a un jefe): tigres y el lema
-function celebrateWorld(){
-  showBanner('Firmes por la patria 🫡', '#ffd100', 24, 2.8);
-  for(let i=0;i<16;i++){
+// Gritos de batalla / campaña de los Tigres (se elige uno al azar al ganar)
+const TIGER_CRIES = [
+  '¡POR LA PATRIA, MILAGRO! 🙏🐯',
+  '¡FIRMES POR LA PATRIA! 🫡',
+  '¡EL TIGRE RUGE POR COLOMBIA! 🐯🇨🇴',
+  '¡DEFENSORES DE LA PATRIA! 🛡️🇨🇴',
+  '¡COLOMBIA SE RESPETA! 🇨🇴',
+  '¡FUERZA, FE Y PATRIA! 🙏🐯',
+  '¡NI UN PASO ATRÁS! 🫡',
+  '¡GARRA Y CORAZÓN POR COLOMBIA! 🐯❤️',
+  '¡LOS TIGRES NO SE RINDEN! 🐯🔥'
+];
+// Celebración al ganar un mundo (derrotar a un jefe): tigres, banderas y grito
+function celebrateWorld(bossType){
+  const cry  = TIGER_CRIES[Math.floor(Math.random()*TIGER_CRIES.length)];
+  const verb = bossType && bossType.fem ? 'DERROTADA' : 'DERROTADO';
+  const name = bossType ? bossType.name.toUpperCase() : 'EL ENEMIGO';
+  showBanner('🐯 ¡'+name+' '+verb+'! 🐯', '#ffd100', 22, 3.4, cry);
+  // lluvia de tigres y banderas de Colombia (más banderas y otros tigres)
+  const faces = ['🐯','🐅','🐯','🇨🇴','🇨🇴','🇨🇴','🫡','🔥','⭐'];
+  for(let i=0;i<28;i++){
     state.popups.push({
-      x: 20 + Math.random()*(W-40),
-      y: H*0.35 + Math.random()*H*0.5,
-      text: '🐯',
-      t: 2.0 + Math.random()*0.9,
-      vy: -(25 + Math.random()*60),
-      size: 22 + Math.random()*18,
+      x: 14 + Math.random()*(W-28),
+      y: H*0.28 + Math.random()*H*0.62,
+      text: faces[Math.floor(Math.random()*faces.length)],
+      t: 2.4 + Math.random()*1.4,
+      vy: -(30 + Math.random()*85),
+      size: 18 + Math.random()*26,
       color: '#fff'
     });
   }
@@ -1566,9 +1636,9 @@ function spawnExplosion(x,y,color,n){
 }
 
 // ---------- Efectos de presentación (cartel, sacudida, puntaje flotante) ----------
-// Cartel central breve (p. ej. "NIVEL 2" o "¡JEFE!")
-function showBanner(text, color, size, dur){
-  state.banner = { text, color: color||'#ffcf33', t: dur||1.6, size: size||30 };
+// Cartel central breve (texto principal + subtítulo opcional)
+function showBanner(text, color, size, dur, sub){
+  state.banner = { text, color: color||'#ffcf33', t: dur||1.6, size: size||30, sub: sub||'' };
 }
 // Sacudida de pantalla (magnitud en px, duración en s)
 function addShake(mag, dur){
@@ -1665,7 +1735,7 @@ function render(){
   if(state.player && state.lives>0){
     const pl=state.player;
     const blink = state.invuln>0 && Math.floor(state.invuln*12)%2===0;
-    if(!blink) paintFace(playerSprite, drawAbelardo, pl.x, pl.y, pl.r);
+    if(!blink){ const hero=currentHero(); paintFace(hero.sprite, hero.draw, pl.x, pl.y, pl.r); }
     // pequeña llama del propulsor
     if(!blink){
       ctx.fillStyle='rgba(127,255,212,'+(0.4+Math.random()*0.3)+')';
@@ -1708,13 +1778,20 @@ function render(){
 
   ctx.restore();   // fin de la sacudida (lo que sigue es interfaz, sin temblor)
 
-  // cartel central (NIVEL / JEFE / lema al ganar un mundo)
+  // cartel central (NIVEL / JEFE / celebración al ganar un mundo)
   if(state.banner){
-    const a = Math.min(1, state.banner.t/0.4);   // se desvanece al final
+    const bn = state.banner;
+    const a = Math.min(1, bn.t/0.4);              // se desvanece al final
+    const pop = 1 + 0.06*Math.sin(performance.now()/90);  // leve latido
     ctx.globalAlpha = a;
-    ctx.fillStyle = state.banner.color;
-    ctx.font = 'bold '+(state.banner.size||30)+'px Arial'; ctx.textAlign='center';
-    ctx.fillText(state.banner.text, W/2, H/2 - 10);
+    ctx.fillStyle = bn.color;
+    ctx.font = 'bold '+Math.round((bn.size||30)*pop)+'px Arial'; ctx.textAlign='center';
+    ctx.fillText(bn.text, W/2, H/2 - (bn.sub?22:10));
+    if(bn.sub){
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText(bn.sub, W/2, H/2 + 14);
+    }
     ctx.globalAlpha = 1;
   }
 
@@ -1751,7 +1828,9 @@ function idleAnim(now){
   ctx.globalAlpha=1;
   // caras de muestra desplazándose suavemente (usan foto si está lista)
   const t = now/1000;
-  paintFace(playerSprite, drawAbelardo, W/2, H-90 + Math.sin(t)*6, 26);
+  // alterna los dos protagonistas en el menú
+  const hero = HEROES[Math.floor(t/2) % HEROES.length];
+  paintFace(hero.sprite, hero.draw, W/2, H-90 + Math.sin(t)*6, 26);
   paintEnemy(ENEMY_TYPES[0], 90+Math.sin(t*0.7)*18, 100, 21);
   paintEnemy(ENEMY_TYPES[1], W-90+Math.cos(t*0.6)*18, 120, 21);
   paintEnemy(ENEMY_TYPES[2], W/2-70+Math.sin(t*0.8)*16, 80, 19);

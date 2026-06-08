@@ -59,10 +59,12 @@ personajes del **Pacto Histórico** antes de que aterricen.
   Wikipedia. *(Las fotos provienen de Wikipedia/Wikimedia Commons y pertenecen
   a sus respectivos autores y licencias.)*
 - **Personajes** (ilustraciones en `<canvas>` con sombreado, o tus fotos):
-  - 🛡️ **Jugador:** Abelardo de la Espriella
-  - 🎯 **Enemigos:** Gustavo Petro, Iván Cepeda, Francia Márquez, Roy Barreras,
-    Gustavo Bolívar, Armando Benedetti, Aída Quilcué, María José Pizarro,
-    Laura Sarabia y Juliana Guerrero.
+  - 🛡️ **Jugadores (se alternan por mundo):** Abelardo de la Espriella y
+    José Manuel Restrepo.
+  - 🎯 **Jefes (en orden, un jefe por mundo):** Laura Sarabia, Gustavo Bolívar,
+    Juliana Guerrero, Roy Barreras, Francia Márquez, Armando Benedetti,
+    Aída Quilcué, María José Pizarro, **Iván Cepeda** (penúltimo) y
+    **Gustavo Petro** (jefe final).
 
 ## 🗂️ Estructura
 
