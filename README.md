@@ -1,8 +1,8 @@
-# 🇨🇴 SalvaAcolombia
+# 🇨🇴 Salva a Colombia con el Tigre y JoseManuel 🇨🇴
 
 Juego de arcade tipo **Galaga** hecho con HTML, CSS y JavaScript puro (sin
 dependencias). Controlas a **Abelardo de la Espriella** y debes derribar a los
-personajes del **Pacto Histórico** antes de que aterricen.
+personajes del **Parto Histérico** antes de que aterricen.
 
 ## ▶️ Jugar en línea
 
