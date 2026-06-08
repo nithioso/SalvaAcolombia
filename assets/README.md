@@ -36,7 +36,8 @@ Usa exactamente estos nombres (se acepta `.png`, `.jpg`, `.jpeg` o `.webp`):
 
 Por la web de GitHub:
 
-1. Ve a **https://github.com/nithioso/Galaga1/upload/main/assets**
+1. Ve a **https://github.com/nithioso/SalvaAcolombia/upload/main/assets**
+   (o la carpeta `assets` del repositorio → *Add file → Upload files*)
    (o en el repo: carpeta `assets` → **Add file → Upload files**).
 2. Arrastra tus imágenes con los **nombres exactos** de la tabla (p. ej.
    `sarabia.png`, `guerrero.png`, `restrepo.png`).

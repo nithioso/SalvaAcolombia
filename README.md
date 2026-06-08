@@ -6,7 +6,7 @@ personajes del **Parto Histérico** antes de que aterricen.
 
 ## ▶️ Jugar en línea
 
-**👉 https://nithioso.github.io/Galaga1/**
+**👉 https://nithioso.github.io/SalvaAcolombia/**
 
 (También puedes abrir `index.html` localmente; ver la sección *Publicar*.)
 
@@ -90,7 +90,7 @@ pausa, colisiones, dibujado e interfaz.
 
 Este repositorio ya está publicado con **GitHub Pages** (Settings → Pages →
 *Deploy from a branch* → `main` / `root`), disponible en
-**https://nithioso.github.io/Galaga1/**. Cada cambio en `main` se publica solo.
+**https://nithioso.github.io/SalvaAcolombia/**. Cada cambio en `main` se publica solo.
 
 Al ser un solo archivo estático, también puedes abrirlo localmente o publicarlo
 en cualquier hosting estático (Netlify, Vercel, etc.) sin compilación.
