@@ -13,8 +13,8 @@
 <meta property="og:description" content="Juego arcade tipo Galaga: Abelardo de la Espriella contra El Pacto Histórico.">
 <meta property="og:url" content="https://gringoinc.github.io/Galaga1/">
 <meta name="twitter:card" content="summary">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 3'%3E%3Crect width='4' height='3' fill='%23ce1126'/%3E%3Crect width='4' height='2.25' fill='%23003893'/%3E%3Crect width='4' height='1.5' fill='%23ffd100'/%3E%3C/svg%3E">
-<title>🇨🇴 SalvaAcolombia — Abelardo contra El Pacto Histórico</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23ce1126'/%3E%3Crect width='64' height='48' fill='%23003893'/%3E%3Crect width='64' height='32' fill='%23ffd100'/%3E%3Ctext x='32' y='46' font-size='42' text-anchor='middle'%3E🐯%3C/text%3E%3C/svg%3E">
+<title>🇨🇴 SalvaAcolombia — Abelardo contra El Pacto Histórico 💀</title>
 <style>
   :root{
     --bg:#05060f;
@@ -148,8 +148,8 @@
 <body>
 <div id="wrap">
   <header>
-    <h1>🇨🇴 SALVAACOLOMBIA 🛡️</h1>
-    <p>Abelardo de la Espriella contra El Pacto Histórico</p>
+    <h1>🇨🇴 SALVAACOLOMBIA 🐯</h1>
+    <p>Abelardo de la Espriella contra El Pacto Histórico 💀</p>
     <div class="flagbar" aria-hidden="true"></div>
   </header>
 
@@ -203,6 +203,7 @@
 
   <div id="hud">
     <div class="stat">👤 <b id="hPlayer">—</b></div>
+    <div class="stat">🌍 <b id="hWorld">1</b></div>
     <div class="stat">Nv <b id="hLevel">1</b></div>
     <div class="stat">Pts <b id="hScore">0</b></div>
     <div class="stat" id="lives"><span id="hLives">♥♥♥</span></div>
@@ -263,6 +264,7 @@ const globalList  = document.getElementById('globalList');
 const overTitle   = document.getElementById('overTitle');
 const overMsg     = document.getElementById('overMsg');
 const hPlayer = document.getElementById('hPlayer');
+const hWorld  = document.getElementById('hWorld');
 const hLevel  = document.getElementById('hLevel');
 const hScore  = document.getElementById('hScore');
 const hLives  = document.getElementById('hLives');
@@ -920,9 +922,9 @@ function loadSprite(base, wikiTitle){
 }
 // Protagonistas: se alternan por mundo (Abelardo y José Manuel Restrepo)
 const HEROES = [
-  { name:'Abelardo de la Espriella', draw:drawAbelardo,
+  { name:'Abelardo de la Espriella', draw:drawAbelardo, bullet:'#ffe14d',
     sprite:loadSprite('assets/abelardo', 'Abelardo de la Espriella') },
-  { name:'José Manuel Restrepo',     draw:drawRestrepo,
+  { name:'José Manuel Restrepo',     draw:drawRestrepo, bullet:'#5ad1ff',
     sprite:loadSprite('assets/restrepo', 'José Manuel Restrepo Abondano') }
 ];
 // Devuelve el protagonista del mundo actual (cambia cada 5 niveles)
@@ -1173,6 +1175,22 @@ function sfxPowerup(){ tone(660,0.08,0.06,'square'); setTimeout(()=>tone(990,0.1
 function sfxLevel(){ [523,659,784].forEach((f,i)=> setTimeout(()=>tone(f,0.14,0.05,'triangle'), i*90)); }
 function sfxBossHit(){ tone(90,0.06,0.05,'square'); }
 function sfxBossDie(){ [392,330,262,196].forEach((f,i)=> setTimeout(()=>{tone(f,0.25,0.07,'sawtooth'); noiseBurst(0.15,0.06);}, i*120)); }
+// Fanfarria de victoria al ganar un mundo
+function sfxFanfare(){ [523,659,784,1047,784,1047].forEach((f,i)=> setTimeout(()=>tone(f,0.18,0.06,'square'), i*110)); }
+// Voz: pronuncia el grito de batalla (sin emojis) si el navegador lo soporta
+function speak(text){
+  if(!audio.on) return;
+  try{
+    if('speechSynthesis' in window){
+      const clean = String(text).replace(/[^\wáéíóúñ¿?¡!,. ]/gi,'').trim();
+      if(!clean) return;
+      const u = new SpeechSynthesisUtterance(clean);
+      u.lang='es-ES'; u.rate=1.0; u.pitch=1.1; u.volume=1.0;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    }
+  }catch(e){}
+}
 
 // Música de fondo procedimental (bajo + arpegio en bucle)
 const MUSIC_BASS = [110,110,146.83,98];                 // La, La, Re, Sol
@@ -1233,6 +1251,7 @@ function startGame(name){
 
 // Refresca el marcador superior (nivel, puntos y vidas)
 function updateHUD(){
+  hWorld.textContent = Math.floor((state.level-1)/5)+1;
   hLevel.textContent = state.level;
   hScore.textContent = state.score;
   hLives.textContent = '♥'.repeat(Math.max(0,state.lives)) || '—';
@@ -1553,6 +1572,8 @@ function celebrateWorld(bossType){
   const verb = bossType && bossType.fem ? 'DERROTADA' : 'DERROTADO';
   const name = bossType ? bossType.name.toUpperCase() : 'EL ENEMIGO';
   showBanner('🐯 ¡'+name+' '+verb+'! 🐯', '#ffd100', 22, 3.4, cry);
+  sfxFanfare();                 // fanfarria de victoria
+  speak(cry);                   // ¡el tigre grita el lema!
   // lluvia de tigres y banderas de Colombia (más banderas y otros tigres)
   const faces = ['🐯','🐅','🐯','🇨🇴','🇨🇴','🇨🇴','🫡','🔥','⭐'];
   for(let i=0;i<28;i++){
@@ -1725,9 +1746,12 @@ function render(){
     ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.fill();
   }
 
-  // disparos del jugador
-  ctx.fillStyle='#7fffd4';
+  // disparos del jugador (color e intensidad según el protagonista)
+  const bcol = currentHero().bullet;
   for(const b of state.bullets){
+    ctx.fillStyle='rgba(255,255,255,.35)';      // estela tenue
+    ctx.fillRect(b.x-3, b.y-4, 6, 14);
+    ctx.fillStyle=bcol;                          // núcleo brillante
     ctx.fillRect(b.x-2, b.y-8, 4, 12);
   }
 
