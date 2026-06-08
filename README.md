@@ -70,7 +70,7 @@ personajes del **Parto Histérico** antes de que aterricen.
     José Manuel Restrepo.
   - 🎯 **Jefes (con apodo satírico, un jefe por mundo):** Barbie Sarabia,
     El Guionista Bolívar, La Doctora Guerrero, El Voltearepas Barreras,
-    Helicóptero Márquez, El Camaleón Benedetti, La Cacica Quilcué,
+    Helicotero Márquez, El Camaleón Benedetti, La Cacica Quilcué,
     La Heredera Pizarro, **El Camarada Cepeda** (penúltimo) y
     **El Mesías Petro** (jefe final). *(Las fotos se buscan por el nombre real.)*
 
