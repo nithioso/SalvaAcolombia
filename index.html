@@ -1629,6 +1629,7 @@ function pauseGame(){
   state.autofire = false; pointerActive = false;
   stopMusic();
   pauseScreen.classList.remove('hidden');
+  lockOverlay(pauseScreen, 450);   // evita que un toque al pausar salte un botón
 }
 function resumeGame(){
   if(!state.running || !state.paused) return;
@@ -1842,7 +1843,7 @@ function update(dt){
       // recoger durante la pausa y en el siguiente nivel) y anuncia el próximo
       if(formationCleared && !state.advancing){
         state.advancing = true;
-        state.nextWaveDelay = 1.8;     // respiro para recoger premios y sentir el avance
+        state.nextWaveDelay = 2.4;     // pausa amplia: recoger premios y leer el próximo nivel
         state.enemyBullets = [];       // limpia solo las balas enemigas (amenazas)
         const nextLvl = state.level+1;
         const heroName = HEROES[Math.floor((nextLvl-1)/5) % HEROES.length].name;
