@@ -177,11 +177,11 @@
          <b style="color:#fff">José Manuel Restrepo</b> (se alternan por mundo).<br>
          Derriba a los jefes del Parto Histérico antes de que aterricen.</p>
       <div>
-        <span class="tag">Petro</span><span class="tag">Iván Cepeda</span>
-        <span class="tag">Francia Márquez</span><span class="tag">Roy Barreras</span>
-        <span class="tag">Bolívar</span><span class="tag">Benedetti</span>
-        <span class="tag">Aída Quilcué</span><span class="tag">María José Pizarro</span>
-        <span class="tag">Laura Sarabia</span><span class="tag">Juliana Guerrero</span>
+        <span class="tag">El Mesías Petro</span><span class="tag">El Camarada Cepeda</span>
+        <span class="tag">Helicóptero Márquez</span><span class="tag">El Voltearepas Barreras</span>
+        <span class="tag">El Guionista Bolívar</span><span class="tag">El Camaleón Benedetti</span>
+        <span class="tag">La Cacica Quilcué</span><span class="tag">La Heredera Pizarro</span>
+        <span class="tag">Barbie Sarabia</span><span class="tag">La Doctora Guerrero</span>
       </div>
       <input type="text" id="nameInput" maxlength="14" placeholder="Escribe tu nombre" autocomplete="off" enterkeyhint="go">
       <button id="startBtn">EMPEZAR ▶</button>
@@ -909,24 +909,24 @@ function drawGuerrero(x,y,r){
 }
 
 // Catálogo de enemigos. Para cada personaje:
+//   name  : apodo satírico que se MUESTRA en el juego
 //   draw  : ilustración de respaldo dibujada en el lienzo
 //   img   : nombre base del archivo local opcional en assets/ (sin extensión)
-//   wiki  : título del artículo en Wikipedia (para traer la foto real)
+//   wiki  : título(s) REAL(es) del artículo en Wikipedia (para traer la foto)
 // Prioridad de la cara: foto local en assets/ → foto de Wikipedia → ilustración.
 // Orden = progresión de jefes (un jefe por mundo). Inicia alternando
-// mujer/hombre (Laura, Bolívar, Juliana…) y termina con los villanos mayores:
-// Iván Cepeda (penúltimo) y Gustavo Petro (jefe final).
+// mujer/hombre y termina con los villanos mayores: Cepeda (penúltimo) y Petro.
 const ENEMY_TYPES = [
-  { name:'Laura Sarabia',      draw:drawSarabia,   color:'#ecc49a', points:30, img:'assets/sarabia',   wiki:['Laura Sarabia','Laura Sarabia Torres','Laura Camila Sarabia Torres'], fem:true },
-  { name:'Gustavo Bolívar',    draw:drawBolivar,   color:'#dca97c', points:30, img:'assets/bolivar',   wiki:['Gustavo Bolívar','Gustavo Bolívar Moreno'] },
-  { name:'Juliana Guerrero',   draw:drawGuerrero,  color:'#e3b485', points:30, img:'assets/guerrero',  wiki:['Juliana Guerrero','Juliana Guerrero Jiménez'], fem:true },
-  { name:'Roy Barreras',       draw:drawRoy,       color:'#dcab80', points:35, img:'assets/roy',       wiki:['Roy Barreras','Roy Leonardo Barreras'] },
-  { name:'Francia Márquez',    draw:drawFrancia,   color:'#7a4a2b', points:35, img:'assets/francia',   wiki:['Francia Márquez','Francia Elena Márquez Mina'], fem:true },
-  { name:'Armando Benedetti',  draw:drawBenedetti, color:'#d9a06f', points:35, img:'assets/benedetti', wiki:['Armando Benedetti','Armando Benedetti Villaneda'] },
-  { name:'Aída Quilcué',       draw:drawQuilcue,   color:'#c98a55', points:40, img:'assets/quilcue',   wiki:['Aída Quilcué','Aida Quilcué'], fem:true },
-  { name:'María José Pizarro', draw:drawPizarro,   color:'#e7bd93', points:40, img:'assets/pizarro',   wiki:['María José Pizarro','María José Pizarro Rodríguez'], fem:true },
-  { name:'Iván Cepeda',        draw:drawCepeda,    color:'#e0b389', points:45, img:'assets/cepeda',    wiki:['Iván Cepeda','Iván Cepeda Castro'] },
-  { name:'Gustavo Petro',      draw:drawPetro,     color:'#d9a679', points:60, img:'assets/petro',     wiki:['Gustavo Petro','Gustavo Petro Urrego'] }
+  { name:'Barbie Sarabia',        draw:drawSarabia,   color:'#ecc49a', points:30, img:'assets/sarabia',   wiki:['Laura Sarabia','Laura Sarabia Torres','Laura Camila Sarabia Torres'], fem:true },
+  { name:'El Guionista Bolívar',  draw:drawBolivar,   color:'#dca97c', points:30, img:'assets/bolivar',   wiki:['Gustavo Bolívar','Gustavo Bolívar Moreno'] },
+  { name:'La Doctora Guerrero',   draw:drawGuerrero,  color:'#e3b485', points:30, img:'assets/guerrero',  wiki:['Juliana Guerrero','Juliana Guerrero Jiménez'], fem:true },
+  { name:'El Voltearepas Barreras', draw:drawRoy,     color:'#dcab80', points:35, img:'assets/roy',       wiki:['Roy Barreras','Roy Leonardo Barreras'] },
+  { name:'Helicóptero Márquez',   draw:drawFrancia,   color:'#7a4a2b', points:35, img:'assets/francia',   wiki:['Francia Márquez','Francia Elena Márquez Mina'], fem:true },
+  { name:'El Camaleón Benedetti', draw:drawBenedetti, color:'#d9a06f', points:35, img:'assets/benedetti', wiki:['Armando Benedetti','Armando Benedetti Villaneda'] },
+  { name:'La Cacica Quilcué',     draw:drawQuilcue,   color:'#c98a55', points:40, img:'assets/quilcue',   wiki:['Aída Quilcué','Aida Quilcué'], fem:true },
+  { name:'La Heredera Pizarro',   draw:drawPizarro,   color:'#e7bd93', points:40, img:'assets/pizarro',   wiki:['María José Pizarro','María José Pizarro Rodríguez'], fem:true },
+  { name:'El Camarada Cepeda',    draw:drawCepeda,    color:'#e0b389', points:45, img:'assets/cepeda',    wiki:['Iván Cepeda','Iván Cepeda Castro'] },
+  { name:'El Mesías Petro',       draw:drawPetro,     color:'#d9a679', points:60, img:'assets/petro',     wiki:['Gustavo Petro','Gustavo Petro Urrego'] }
 ];
 
 // ========================================================

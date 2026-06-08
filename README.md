@@ -68,10 +68,11 @@ personajes del **Parto Histérico** antes de que aterricen.
 - **Personajes** (ilustraciones en `<canvas>` con sombreado, o tus fotos):
   - 🛡️ **Jugadores (se alternan por mundo):** Abelardo de la Espriella y
     José Manuel Restrepo.
-  - 🎯 **Jefes (en orden, un jefe por mundo):** Laura Sarabia, Gustavo Bolívar,
-    Juliana Guerrero, Roy Barreras, Francia Márquez, Armando Benedetti,
-    Aída Quilcué, María José Pizarro, **Iván Cepeda** (penúltimo) y
-    **Gustavo Petro** (jefe final).
+  - 🎯 **Jefes (con apodo satírico, un jefe por mundo):** Barbie Sarabia,
+    El Guionista Bolívar, La Doctora Guerrero, El Voltearepas Barreras,
+    Helicóptero Márquez, El Camaleón Benedetti, La Cacica Quilcué,
+    La Heredera Pizarro, **El Camarada Cepeda** (penúltimo) y
+    **El Mesías Petro** (jefe final). *(Las fotos se buscan por el nombre real.)*
 
 ## 🗂️ Estructura
 
