@@ -84,6 +84,13 @@
     aspect-ratio:480/600;
     background:#02030a;touch-action:none;
   }
+  /* Capa de efectos sobre el lienzo: scanlines + viñeta (look arcade) */
+  #fx{
+    position:absolute; inset:0; pointer-events:none; z-index:2; border-radius:inherit;
+    background:
+      repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.12) 2px 3px),
+      radial-gradient(ellipse at center, rgba(0,0,0,0) 52%, rgba(0,0,0,0.5) 100%);
+  }
 
   /* Overlays */
   .overlay{
@@ -193,6 +200,7 @@
 
   <div id="stage">
     <canvas id="game" width="480" height="600"></canvas>
+    <div id="fx" aria-hidden="true"></div>
 
     <!-- START / NAME -->
     <div id="startScreen" class="overlay">
@@ -230,6 +238,13 @@
         <strong style="color:var(--accent);font-size:13px;" data-i18n="boardGlobal">🌐 RÉCORD UNIVERSAL</strong>
         <ol id="globalList"></ol>
       </div>
+      <div class="share" data-ctx="over">
+        <span class="share-lbl" data-i18n="shareWin">Compartir tu logro:</span>
+        <button class="shareBtn wa" data-net="whatsapp" data-ctx="over">WhatsApp</button>
+        <button class="shareBtn xx" data-net="x" data-ctx="over">X</button>
+        <button class="shareBtn fb" data-net="facebook" data-ctx="over">Facebook</button>
+        <button class="shareBtn cp" id="overCardBtn" data-i18n="card">🖼️ Tarjeta</button>
+      </div>
       <button id="againBtn" data-i18n="again">JUGAR DE NUEVO 🔁</button>
     </div>
 
@@ -252,6 +267,7 @@
         <button class="shareBtn xx" data-net="x" data-ctx="win">X</button>
         <button class="shareBtn fb" data-net="facebook" data-ctx="win">Facebook</button>
         <button class="shareBtn cp" data-net="copy" data-ctx="win" data-i18n="copy">Copiar</button>
+        <button class="shareBtn cp" id="winCardBtn" data-i18n="card">🖼️ Tarjeta</button>
       </div>
       <button id="winAgainBtn" class="secondary" data-i18n="again">JUGAR DE NUEVO 🔁</button>
     </div>
@@ -342,6 +358,7 @@ const STR = {
       'Ahora tu paso para salvarla es <b>marcar la X sobre el Tigre y José Manuel</b> este <b>21 de junio</b>.<br>'+
       '¡Vamos firmes por la patria! 🐯🫡<br><br>Puntaje: <b style="color:var(--good)">'+sc+'</b> · Mundos: <b>'+w+'</b>',
     cheatOn:'🐯 ¡MODO TIGRE ACTIVADO!', cheatSub:'Armas, escudo y vidas al doble 🫡', combo:'COMBO',
+    world:'MUNDO', bossOfWorld:(n)=>'Jefe del mundo: '+n+' 💀', onFire:'🔥 ¡EN LLAMAS! 🔥', card:'🖼️ Tarjeta',
     speakWin:'¡Ganaste salvando a Colombia! Marca la X por el Tigre y José Manuel este 21 de junio. ¡Firmes por la patria!',
     copied:'¡Copiado! Pégalo donde quieras. 🐯🇨🇴',
     shareWinTxt:(sc,w)=>'¡Gané Salva a Colombia con el Tigre y JoseManuel! 🐯🇨🇴 Puntaje: '+sc+' · Mundos: '+w+'. ¡Firmes por la patria! 🫡',
@@ -388,6 +405,7 @@ const STR = {
       'Now your move to save it: <b>vote the X for the Tiger and José Manuel</b> this <b>June 21</b>.<br>'+
       'Firm for the homeland! 🐯🫡<br><br>Score: <b style="color:var(--good)">'+sc+'</b> · Worlds: <b>'+w+'</b>',
     cheatOn:'🐯 TIGER MODE ON!', cheatSub:'Weapons, shield & lives doubled 🫡', combo:'COMBO',
+    world:'WORLD', bossOfWorld:(n)=>'World boss: '+n+' 💀', onFire:'🔥 ON FIRE! 🔥', card:'🖼️ Card',
     speakWin:'You won and saved Colombia! Vote the X for the Tiger and José Manuel this June 21. Firm for the homeland!',
     copied:'Copied! Paste it anywhere. 🐯🇨🇴',
     shareWinTxt:(sc,w)=>'I beat Save Colombia with the Tiger & JoseManuel! 🐯🇨🇴 Score: '+sc+' · Worlds: '+w+'. Firm for the homeland! 🫡',
@@ -1301,7 +1319,16 @@ function buildWave(level, announce){
   }
   state.formationDir = 1;
   state.formationT = 0;
-  if(announce!==false) showBanner(TR.level+' '+level, '#ffcf33', 30, 1.8, TR.pilotsShort(currentHero().name));
+  if(announce!==false){
+    if((level-1)%5===0){
+      // inicio de un MUNDO: badge grande con el jefe que viene
+      const wn = Math.floor((level-1)/5)+1;
+      const bossName = ENEMY_TYPES[(wn-1)%ENEMY_TYPES.length].name;
+      showBanner('🌍 '+TR.world+' '+wn, '#9ad8ff', 34, 2.4, TR.bossOfWorld(bossName));
+    } else {
+      showBanner(TR.level+' '+level, '#ffcf33', 30, 1.8, TR.pilotsShort(currentHero().name));
+    }
+  }
 }
 
 // ========================================================
@@ -1699,12 +1726,15 @@ function update(dt){
       if(!e.alive) continue;
       const dx=b.x-e.x, dy=b.y-e.y;
       if(dx*dx+dy*dy < (e.r+b.r)*(e.r+b.r)){
+        spawnSparks(b.x, b.y-4, '#ffe14d');     // chispas al impactar
         b.y = -999;
         e.hp--;
         if(e.hp<=0){
           e.alive=false;
           // combo: sube con cada baja; multiplica el puntaje
           state.combo++; state.comboTimer = 2.6;
+          // 🔥 ¡EN LLAMAS! cada 10 bajas de racha
+          if(state.combo>=10 && state.combo%10===0){ showBanner(TR.onFire,'#ff7a1a',26,1.2); addFlash('#ff7a1a',0.25); }
           const mult = 1 + Math.min(state.combo,20)*0.05;     // hasta x2
           const pts = Math.round(e.type.points * state.level * mult);
           state.score += pts;
@@ -1728,7 +1758,7 @@ function update(dt){
     for(const b of state.bullets){
       const dx=b.x-bo.x, dy=b.y-bo.y;
       if(dx*dx+dy*dy < (bo.r+b.r)*(bo.r+b.r)){
-        b.y=-999; bo.hp--; spawnExplosion(b.x,b.y,'#fff',4); sfxBossHit();
+        b.y=-999; bo.hp--; spawnSparks(b.x,b.y,'#ffd100'); spawnExplosion(b.x,b.y,'#fff',4); sfxBossHit();
         if(bo.hp<=0){ defeatBoss(); break; }
       }
     }
@@ -2043,6 +2073,14 @@ function spawnExplosion(x,y,color,n){
       life:Math.random()*0.6+0.3, color, r:Math.random()*3+1 });
   }
 }
+// Chispas brillantes y breves al impactar un disparo
+function spawnSparks(x,y,color){
+  for(let i=0;i<6;i++){
+    const a=Math.random()*Math.PI*2, sp=Math.random()*220+60;
+    state.particles.push({ x,y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp - 40,
+      life:0.18+Math.random()*0.18, color:color||'#fff', r:Math.random()*2+1 });
+  }
+}
 
 // ---------- Efectos de presentación (cartel, sacudida, puntaje flotante) ----------
 // Cartel central breve (texto principal + subtítulo opcional)
@@ -2142,20 +2180,25 @@ function render(){
     drawPowerup(pu);
   }
 
-  // disparos enemigos
-  ctx.fillStyle='#ff5577';
+  // disparos enemigos (con leve resplandor)
+  ctx.save();
+  ctx.shadowColor='#ff5577'; ctx.shadowBlur=8; ctx.fillStyle='#ff5577';
   for(const b of state.enemyBullets){
     ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.fill();
   }
+  ctx.restore();
 
-  // disparos del jugador (color e intensidad según el protagonista)
+  // disparos del jugador (color e intensidad según el protagonista, con bloom)
   const bcol = currentHero().bullet;
+  ctx.save();
+  ctx.shadowColor=bcol; ctx.shadowBlur=10;
   for(const b of state.bullets){
     ctx.fillStyle='rgba(255,255,255,.35)';      // estela tenue
     ctx.fillRect(b.x-3, b.y-4, 6, 14);
     ctx.fillStyle=bcol;                          // núcleo brillante
     ctx.fillRect(b.x-2, b.y-8, 4, 12);
   }
+  ctx.restore();
 
   // jugador (parpadea mientras es invulnerable)
   if(state.player && state.lives>0){
@@ -2297,9 +2340,54 @@ winAgainBtn.addEventListener('click', ()=> startGame(state.playerName||'Anónimo
 
 // ---------- Compartir en redes ----------
 const SHARE_URL = 'https://nithioso.github.io/SalvaAcolombia/';
-// Texto según el contexto: 'win' (logro) o 'invite' (invitación desde el menú)
+// Texto según el contexto: 'win'/'over' (logro) o 'invite' (invitación)
 function shareText(ctx){
-  return ctx==='win' ? TR.shareWinTxt(state.score, state.worlds) : TR.shareInviteTxt();
+  return (ctx==='win'||ctx==='over') ? TR.shareWinTxt(state.score, state.worlds) : TR.shareInviteTxt();
+}
+// Genera una TARJETA (imagen PNG) con tu resultado, lista para compartir
+function makeResultCard(){
+  const c = document.createElement('canvas'); c.width=600; c.height=315;
+  const g = c.getContext('2d');
+  const bg = g.createLinearGradient(0,0,600,315);
+  bg.addColorStop(0,'#0b1030'); bg.addColorStop(1,'#05060f');
+  g.fillStyle=bg; g.fillRect(0,0,600,315);
+  // franja con la bandera de Colombia
+  g.fillStyle='#ffd100'; g.fillRect(0,0,18,315);
+  g.fillStyle='#003893'; g.fillRect(0,157,18,79);
+  g.fillStyle='#ce1126'; g.fillRect(0,236,18,79);
+  g.textAlign='left';
+  g.fillStyle='#ffd100'; g.font='bold 30px Arial'; g.fillText('SALVA A COLOMBIA', 44, 58);
+  g.fillStyle='#e8ecff'; g.font='bold 17px Arial'; g.fillText('con el Tigre y JoseManuel  🐯🇨🇴', 44, 86);
+  g.fillStyle='#39d98a'; g.font='bold 40px Arial';
+  g.fillText(String(state.playerName||'Anónimo').slice(0,16), 44, 150);
+  g.fillStyle='#fff'; g.font='bold 26px Arial';
+  g.fillText('Puntaje: '+state.score, 44, 196);
+  g.fillStyle='#cdd3ff'; g.font='bold 20px Arial';
+  g.fillText('Mundos conquistados: '+state.worlds, 44, 228);
+  g.fillStyle='#ffd100'; g.font='bold 18px Arial'; g.fillText('¡Firmes por la patria! 🫡', 44, 268);
+  g.fillStyle='#8b93c4'; g.font='15px Arial'; g.fillText('nithioso.github.io/SalvaAcolombia', 44, 296);
+  return c;
+}
+// Comparte la tarjeta como imagen (archivo) o la descarga si no se puede
+function shareCard(){
+  let c; try{ c = makeResultCard(); }catch(e){ return; }
+  const txt = shareText('win');
+  const dl = ()=>{ try{ const a=document.createElement('a'); a.download='SalvaAColombia.png'; a.href=c.toDataURL('image/png'); a.click(); }catch(e){} };
+  if(c.toBlob){
+    c.toBlob(blob=>{
+      if(!blob){ dl(); return; }
+      try{
+        const file = new File([blob],'SalvaAColombia.png',{type:'image/png'});
+        if(navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
+          navigator.share({ files:[file], text:txt }).catch(()=>{});
+          return;
+        }
+      }catch(e){}
+      const a=document.createElement('a'); a.download='SalvaAColombia.png';
+      a.href=URL.createObjectURL(blob); a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 8000);
+    }, 'image/png');
+  } else { dl(); }
 }
 // Abre la red elegida con el texto + enlace
 function shareTo(net, ctx){
@@ -2318,12 +2406,17 @@ function shareTo(net, ctx){
   }
   if(link) window.open(link, '_blank', 'noopener,noreferrer');
 }
-// Conecta todos los botones de compartir (menú y victoria)
+// Conecta los botones de compartir a redes (los que tienen data-net)
 if(document.querySelectorAll){
-  Array.prototype.forEach.call(document.querySelectorAll('.shareBtn'), btn=>{
+  Array.prototype.forEach.call(document.querySelectorAll('.shareBtn[data-net]'), btn=>{
     btn.addEventListener('click', ()=> shareTo(btn.dataset.net, btn.dataset.ctx));
   });
 }
+// Botones de TARJETA (imagen)
+['winCardBtn','overCardBtn'].forEach(id=>{
+  const b = document.getElementById(id);
+  if(b) b.addEventListener('click', shareCard);
+});
 pauseBtn.addEventListener('click', togglePause);
 muteBtn.addEventListener('click', toggleMute);
 resumeBtn.addEventListener('click', resumeGame);
