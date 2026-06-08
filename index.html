@@ -953,8 +953,8 @@ function paintEnemy(type, x, y, r){
 // ========================================================
 // Crea el barco del jugador (Abelardo) en la parte inferior
 function createPlayer(){
-  return { x:W/2, y:H-60, r:20, w:44, h:54, speed:320, cooldown:0,
-           doubleTimer:0, shieldTimer:0 };
+  return { x:W/2, y:H-60, r:20, w:44, h:54, speed:340, cooldown:0,
+           weapon:1, rapidTimer:0, shieldTimer:0 };
 }
 
 // Construye una oleada de enemigos en formación.
@@ -963,9 +963,9 @@ function createPlayer(){
 function createBoss(level){
   const idx = (Math.floor(level/5) - 1) % ENEMY_TYPES.length;
   const type = ENEMY_TYPES[(idx+ENEMY_TYPES.length)%ENEMY_TYPES.length];
-  const hp = 45 + level*12;
-  return { type, x:W/2, y:120, r:58, vx:70+level*4,
-           hp, maxHp:hp, fireTimer:1.2, t:0, alive:true };
+  const hp = 28 + level*7;      // primer jefe (nivel 5) ≈ 63 de vida
+  return { type, x:W/2, y:120, r:58, vx:60+level*3,
+           hp, maxHp:hp, fireTimer:1.6, t:0, alive:true };
 }
 
 function buildWave(level){
@@ -979,7 +979,7 @@ function buildWave(level){
     return;
   }
   const cols = 6;
-  const rows = Math.min(3 + Math.floor(level/2), 6);
+  const rows = Math.min(2 + Math.floor(level/2), 6);   // menos enemigos al inicio
   const marginX = 56, gapX = (W-2*marginX)/(cols-1);
   const startY = 70, gapY = 56;
   for(let row=0; row<rows; row++){
@@ -1051,20 +1051,22 @@ window.addEventListener('pointercancel', endPointer);
 canvas.addEventListener('contextmenu', e=> e.preventDefault());
 canvas.addEventListener('dblclick', e=> e.preventDefault());
 
-// Dispara un proyectil del jugador respetando el tiempo de recarga
+// Dispara según el NIVEL DE ARMA del jugador (mejorable con power-ups)
 function tryFire(){
   if(!state.running || state.paused || !state.player) return;
   const p = state.player;
   if(p.cooldown>0) return;
-  p.cooldown = 0.22;
-  if(p.doubleTimer>0){
-    // disparo doble (power-up)
-    state.bullets.push({ x:p.x-9, y:p.y-26, vy:-600, r:4 });
-    state.bullets.push({ x:p.x+9, y:p.y-26, vy:-600, r:4 });
-  } else {
-    state.bullets.push({ x:p.x, y:p.y-30, vy:-600, r:4 });
-  }
-  beep(880,0.05,0.03);
+  const rapid = p.rapidTimer>0;
+  p.cooldown = rapid ? 0.10 : 0.16;     // disparo más rápido que antes (y aún más con ⚡)
+  const y = p.y-26, V=-640;
+  const shot=(dx,vx)=> state.bullets.push({ x:p.x+dx, y, vx:vx||0, vy:V, r:4 });
+  const w = p.weapon;
+  if(w<=1){ shot(0); }
+  else if(w===2){ shot(-9); shot(9); }
+  else if(w===3){ shot(0); shot(-12,-110); shot(12,110); }
+  else if(w===4){ shot(-9); shot(9); shot(-17,-150); shot(17,150); }
+  else { shot(0); shot(-11); shot(11); shot(-20,-190); shot(20,190); }   // w>=5
+  beep(rapid?980:880, 0.045, 0.03);
 }
 
 // ========================================================
@@ -1152,14 +1154,14 @@ function toggleMute(){
 function startGame(name){
   state.playerName = name;
   try { localStorage.setItem(LS_NAME, name); } catch(e){}   // recuerda el nombre
-  state.score = 0; state.level = 1; state.lives = 3;
+  state.score = 0; state.level = 1; state.lives = 5;   // más vidas
   state.bullets=[]; state.enemyBullets=[]; state.particles=[];
   state.powerups=[]; state.boss=null; state.worlds=0; state.nextWaveDelay=0;
   state.popups=[]; state.banner=null; state.shakeT=0; state.shakeMag=0;
   state.player = createPlayer();
-  // Arranque con más armas: disparo doble y un escudo inicial de cortesía
-  state.player.doubleTimer = 20;
-  state.player.shieldTimer = 4;
+  // Arranque más fuerte: arma nivel 2 (disparo doble) y escudo de cortesía
+  state.player.weapon = 2;
+  state.player.shieldTimer = 5;
   state.invuln = 2.0;
   state.paused = false; state.autofire = false; pointerActive = false;
   initStars();
@@ -1189,13 +1191,13 @@ function updateHUD(){
 function difficulty(){
   const L = state.level;
   return {
-    formSpeed: 12 + L*6,
-    // en el nivel 1 los enemigos NO pican; empiezan a hacerlo desde el nivel 2
-    diveChance: Math.max(0, L-1) * 0.0013,
-    enemyBulletSpeed: 140 + L*12,
-    // muy pocos disparos al inicio, aumentan con el nivel
-    enemyFireChance: 0.0006 + Math.max(0, L-1) * 0.0006,
-    maxDivers: 1 + Math.floor(L/2)   // picadas simultáneas máximas
+    formSpeed: 10 + L*5,
+    // los enemigos no pican hasta el nivel 3
+    diveChance: Math.max(0, L-2) * 0.0011,
+    enemyBulletSpeed: 130 + L*10,
+    // muy pocos disparos al inicio, aumentan poco a poco
+    enemyFireChance: 0.0004 + Math.max(0, L-1) * 0.00045,
+    maxDivers: 1 + Math.floor(L/3)   // picadas simultáneas máximas
   };
 }
 
@@ -1259,13 +1261,13 @@ function update(dt){
   p.x = Math.max(p.w/2, Math.min(W-p.w/2, p.x));
   if(p.cooldown>0) p.cooldown -= dt;
   if(state.invuln>0) state.invuln -= dt;
-  if(p.doubleTimer>0) p.doubleTimer -= dt;     // power-up disparo doble
+  if(p.rapidTimer>0) p.rapidTimer -= dt;       // power-up disparo rápido
   if(p.shieldTimer>0) p.shieldTimer -= dt;     // power-up escudo
   // Disparo continuo: teclado (espacio/arriba) o autofuego táctil
   if(state.keys['ArrowUp'] || state.keys[' '] || state.autofire) tryFire();
 
   // disparos del jugador
-  for(const b of state.bullets){ b.y += b.vy*dt; }
+  for(const b of state.bullets){ b.x += (b.vx||0)*dt; b.y += b.vy*dt; }
   state.bullets = state.bullets.filter(b=> b.y > -10);
 
   // movimiento de la formación enemiga
@@ -1340,7 +1342,7 @@ function update(dt){
           addPopup(e.x, e.y, '+'+pts);
           spawnExplosion(e.x,e.y,e.type.color);
           sfxExplosion();
-          if(Math.random() < 0.16) spawnPowerup(e.x, e.y);   // suelta power-up
+          if(Math.random() < 0.24) spawnPowerup(e.x, e.y);   // suelta power-up
         } else {
           spawnExplosion(e.x,e.y,'#ffffff',6);
         }
@@ -1448,12 +1450,12 @@ function updateBoss(dt, d){
   b.y = 110 + Math.sin(b.t*(enraged?1.8:1.2))*18;
   b.fireTimer -= dt;
   if(b.fireTimer<=0){
-    b.fireTimer = Math.max(0.45, (enraged?0.95:1.5) - state.level*0.03);
-    const speed = d.enemyBulletSpeed*0.85;
+    b.fireTimer = Math.max(0.6, (enraged?1.2:1.8) - state.level*0.02);
+    const speed = d.enemyBulletSpeed*0.72;   // balas del jefe más lentas
     // abanico de disparos hacia abajo (más amplio si está enfurecido)
-    const n = enraged ? 7 : 5;
+    const n = enraged ? 5 : 3;
     for(let i=0;i<n;i++){
-      const a = Math.PI/2 + (i-(n-1)/2)*0.26;
+      const a = Math.PI/2 + (i-(n-1)/2)*0.30;
       state.enemyBullets.push({ x:b.x, y:b.y+b.r*0.5, vx:Math.cos(a)*speed, vy:Math.sin(a)*speed, r:5 });
     }
     // un disparo dirigido al jugador
@@ -1497,23 +1499,31 @@ function celebrateWorld(){
 }
 
 // ---------- Power-ups ----------
-// Aparece un power-up que cae; tipo ponderado (la vida extra es la más rara)
+// Aparece un power-up que cae. La MEJORA DE ARMA (⬆) es la más común para que
+// sea fácil potenciarse; la vida extra es la más rara.
 function spawnPowerup(x,y){
   const r=Math.random();
-  const type = r<0.45 ? 'double' : (r<0.85 ? 'shield' : 'life');
+  const type = r<0.50 ? 'weapon' : (r<0.75 ? 'rapid' : (r<0.92 ? 'shield' : 'life'));
   state.powerups.push({ x, y, vy:80, r:13, type, t:0 });
 }
 // Aplica el efecto al recogerlo
 function applyPowerup(pu){
-  if(pu.type==='double')      state.player.doubleTimer = 10;
-  else if(pu.type==='shield') state.player.shieldTimer = 7;
-  else if(pu.type==='life')   state.lives = Math.min(5, state.lives+1);
+  const p = state.player;
+  if(pu.type==='weapon'){
+    if(p.weapon<5){ p.weapon++; addPopup(p.x, p.y-30, '¡ARMA Lv.'+p.weapon+'!'); }
+    else { state.score += 200; addPopup(p.x, p.y-30, '+200'); }   // ya al máximo
+  }
+  else if(pu.type==='rapid')  p.rapidTimer = 9;
+  else if(pu.type==='shield') p.shieldTimer = 7;
+  else if(pu.type==='life')   state.lives = Math.min(9, state.lives+1);
   sfxPowerup();
   updateHUD();
 }
 // Dibuja una cápsula de power-up con su color e ícono
 function drawPowerup(pu){
-  const col = pu.type==='double' ? '#2ad1c0' : (pu.type==='shield' ? '#5aa6ff' : '#ff4d6d');
+  const col = pu.type==='weapon' ? '#ffd100'
+            : pu.type==='rapid'  ? '#2ad1c0'
+            : pu.type==='shield' ? '#5aa6ff' : '#ff4d6d';
   ctx.save();
   ctx.translate(pu.x, pu.y + Math.sin(pu.t*4)*1.5);
   ctx.shadowColor = col; ctx.shadowBlur = 8;
@@ -1521,9 +1531,9 @@ function drawPowerup(pu){
   ctx.beginPath(); ctx.arc(0,0,pu.r,0,Math.PI*2); ctx.fill();
   ctx.shadowBlur = 0;
   ctx.fillStyle = '#06121f'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  if(pu.type==='double'){ ctx.font='bold 13px Arial'; ctx.fillText('x2', 0, 1); }
-  else if(pu.type==='shield'){ ctx.font='bold 14px Arial'; ctx.fillText('🛡', 0, 1); }
-  else { ctx.font='bold 14px Arial'; ctx.fillText('♥', 0, 1); }
+  ctx.font='bold 14px Arial';
+  const icon = pu.type==='weapon' ? '⬆' : pu.type==='rapid' ? '⚡' : pu.type==='shield' ? '🛡' : '♥';
+  ctx.fillText(icon, 0, 1);
   ctx.restore();
 }
 
@@ -1671,10 +1681,10 @@ function render(){
       ctx.strokeStyle='rgba(90,170,255,'+pulse+')'; ctx.lineWidth=3;
       ctx.beginPath(); ctx.arc(pl.x, pl.y, pl.r*1.7, 0, Math.PI*2); ctx.stroke();
     }
-    // indicador de disparo doble
-    if(pl.doubleTimer>0){
-      ctx.fillStyle='rgba(127,255,212,.9)'; ctx.font='bold 11px Arial'; ctx.textAlign='center';
-      ctx.fillText('x2', pl.x, pl.y - pl.r*1.8);
+    // destello de disparo rápido (anillo verde tenue)
+    if(pl.rapidTimer>0){
+      ctx.strokeStyle='rgba(42,209,192,.6)'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(pl.x, pl.y, pl.r*1.45, 0, Math.PI*2); ctx.stroke();
     }
   }
 
@@ -1708,19 +1718,22 @@ function render(){
     ctx.globalAlpha = 1;
   }
 
-  // indicadores de power-ups activos (esquina inferior izquierda)
+  // indicadores en pantalla (esquina inferior izquierda)
   if(state.player){
     let iy = H-14;
     const drawTimer=(label,timer,max,col)=>{
       if(timer<=0) return;
       ctx.fillStyle=col; ctx.font='bold 11px Arial'; ctx.textAlign='left';
       ctx.fillText(label, 10, iy);
-      ctx.fillStyle='rgba(255,255,255,.25)'; ctx.fillRect(34,iy-8,46,5);
-      ctx.fillStyle=col; ctx.fillRect(34,iy-8,46*Math.min(1,timer/max),5);
+      ctx.fillStyle='rgba(255,255,255,.25)'; ctx.fillRect(40,iy-8,46,5);
+      ctx.fillStyle=col; ctx.fillRect(40,iy-8,46*Math.min(1,timer/max),5);
       iy -= 14;
     };
-    drawTimer('x2', state.player.doubleTimer, 10, '#2ad1c0');
+    drawTimer('⚡', state.player.rapidTimer, 9, '#2ad1c0');
     drawTimer('🛡', state.player.shieldTimer, 7, '#5aa6ff');
+    // nivel de arma (siempre visible)
+    ctx.fillStyle='#ffd100'; ctx.font='bold 12px Arial'; ctx.textAlign='left';
+    ctx.fillText('ARMA Lv.'+state.player.weapon, 10, iy);
   }
 }
 
