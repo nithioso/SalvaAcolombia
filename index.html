@@ -12,12 +12,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="description" content="Salva a Colombia con el Tigre y JoseManuel: juego arcade tipo Galaga. Pilota a Abelardo de la Espriella y enfréntate al Parto Histérico. ¡Pon tu nombre y entra al Top 5!">
+<meta name="description" content="🐯🇨🇴 Pilota al Tigre Abelardo y a José Manuel, derrota al Parto Histérico y entra al récord universal. ¡Juega gratis y firmes por la patria!">
 <meta property="og:type" content="website">
-<meta property="og:title" content="🇨🇴 Salva a Colombia con el Tigre y JoseManuel 🇨🇴">
-<meta property="og:description" content="Juego arcade tipo Galaga: Abelardo de la Espriella contra El Parto Histérico.">
+<meta property="og:site_name" content="Salva a Colombia">
+<meta property="og:title" content="🐯🇨🇴 Salva a Colombia con el Tigre y JoseManuel">
+<meta property="og:description" content="Defiende a Colombia: dispara al Parto Histórico, vence al jefe final y compite por el récord universal. ¡Toca para jugar gratis! 🫡">
 <meta property="og:url" content="https://nithioso.github.io/SalvaAcolombia/">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://nithioso.github.io/SalvaAcolombia/assets/abelardoyjosemanuel.jpg">
+<meta property="og:image:alt" content="Abelardo 'El Tigre' y José Manuel — Salva a Colombia">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="🐯🇨🇴 Salva a Colombia con el Tigre y JoseManuel">
+<meta name="twitter:description" content="Dispara al Parto Histórico, vence al jefe final y entra al récord universal. ¡Juega gratis! 🫡">
+<meta name="twitter:image" content="https://nithioso.github.io/SalvaAcolombia/assets/abelardoyjosemanuel.jpg">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23ce1126'/%3E%3Crect width='64' height='48' fill='%23003893'/%3E%3Crect width='64' height='32' fill='%23ffd100'/%3E%3Ctext x='32' y='46' font-size='42' text-anchor='middle'%3E🐯%3C/text%3E%3C/svg%3E">
 <title>🇨🇴 Salva a Colombia con el Tigre y JoseManuel 🇨🇴</title>
 <style>
@@ -157,6 +163,20 @@
   .board .empty{opacity:.5;font-size:12px;text-align:center;padding:10px;}
   .controls-help{font-size:11px;opacity:.6;margin-top:14px;line-height:1.6;}
   .tag{display:inline-block;background:#1c2350;border-radius:6px;padding:2px 7px;margin:2px;font-size:11px;}
+
+  /* Botones de compartir en redes */
+  .share{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;margin-top:14px;}
+  .share-lbl{font-size:11px;opacity:.7;width:100%;}
+  .shareBtn{
+    margin:0;min-height:34px;padding:7px 12px;border:none;border-radius:8px;
+    font-size:12px;font-weight:700;color:#fff;cursor:pointer;letter-spacing:.3px;
+    touch-action:manipulation;
+  }
+  .shareBtn.wa{background:#25d366;color:#04310f;}
+  .shareBtn.xx{background:#111;border:1px solid #444;}
+  .shareBtn.fb{background:#1877f2;}
+  .shareBtn.cp{background:#2a3060;}
+  .shareBtn:active{transform:scale(.96);}
 </style>
 </head>
 <body>
@@ -178,7 +198,7 @@
          Derriba a los jefes del Parto Histérico antes de que aterricen.</p>
       <div>
         <span class="tag">El Mesías Petro</span><span class="tag">El Camarada Cepeda</span>
-        <span class="tag">Helicóptero Márquez</span><span class="tag">El Voltearepas Barreras</span>
+        <span class="tag">Helicotero Márquez</span><span class="tag">El Voltearepas Barreras</span>
         <span class="tag">El Guionista Bolívar</span><span class="tag">El Camaleón Benedetti</span>
         <span class="tag">La Cacica Quilcué</span><span class="tag">La Heredera Pizarro</span>
         <span class="tag">Barbie Sarabia</span><span class="tag">La Doctora Guerrero</span>
@@ -188,6 +208,12 @@
       <div class="controls-help">
         📱 <b>Móvil:</b> desliza el dedo para mover. El disparo es automático.<br>
         💻 <b>PC:</b> ⬅️ ➡️ mover &nbsp;•&nbsp; ESPACIO / clic = disparar &nbsp;•&nbsp; P = pausa
+      </div>
+      <div class="share" data-ctx="invite">
+        <span class="share-lbl">Compartir:</span>
+        <button class="shareBtn wa" data-net="whatsapp" data-ctx="invite">WhatsApp</button>
+        <button class="shareBtn xx" data-net="x" data-ctx="invite">X</button>
+        <button class="shareBtn fb" data-net="facebook" data-ctx="invite">Facebook</button>
       </div>
     </div>
 
@@ -219,7 +245,13 @@
       <h2 style="color:var(--good)">🎉 ¡GANASTE! 🇨🇴</h2>
       <p id="winMsg"></p>
       <img id="winImg" alt="Abelardo y José Manuel — campaña" style="display:none;max-width:100%;max-height:34vh;border-radius:12px;border:2px solid var(--accent);margin:6px 0;">
-      <button id="winShareBtn">Compartir 📣</button>
+      <div class="share" data-ctx="win">
+        <span class="share-lbl">Compartir tu logro:</span>
+        <button class="shareBtn wa" data-net="whatsapp" data-ctx="win">WhatsApp</button>
+        <button class="shareBtn xx" data-net="x" data-ctx="win">X</button>
+        <button class="shareBtn fb" data-net="facebook" data-ctx="win">Facebook</button>
+        <button class="shareBtn cp" data-net="copy" data-ctx="win">Copiar</button>
+      </div>
       <button id="winAgainBtn" class="secondary">JUGAR DE NUEVO 🔁</button>
     </div>
   </div>
@@ -293,7 +325,6 @@ const overMsg     = document.getElementById('overMsg');
 const winScreen   = document.getElementById('winScreen');
 const winMsg      = document.getElementById('winMsg');
 const winImg      = document.getElementById('winImg');
-const winShareBtn = document.getElementById('winShareBtn');
 const winAgainBtn = document.getElementById('winAgainBtn');
 const hPlayer = document.getElementById('hPlayer');
 const hWorld  = document.getElementById('hWorld');
@@ -419,7 +450,7 @@ function renderGlobalScores(list, hiName, hiScore){
 
 // ⚠️ MODO PRUEBA: casi invencible y enemigos flojos para llegar al final y
 // testear. Para PRODUCCIÓN poner en false (deja el balance normal).
-const TEST_MODE = true;
+const TEST_MODE = false;
 
 // ---------- Estado del juego ----------
 const state = {
@@ -925,7 +956,7 @@ const ENEMY_TYPES = [
   { name:'El Guionista Bolívar',  draw:drawBolivar,   color:'#dca97c', points:30, img:'assets/bolivar',   wiki:['Gustavo Bolívar','Gustavo Bolívar Moreno'] },
   { name:'La Doctora Guerrero',   draw:drawGuerrero,  color:'#e3b485', points:30, img:'assets/guerrero',  wiki:['Juliana Guerrero','Juliana Guerrero Jiménez'], fem:true },
   { name:'El Voltearepas Barreras', draw:drawRoy,     color:'#dcab80', points:35, img:'assets/roy',       wiki:['Roy Barreras','Roy Leonardo Barreras'] },
-  { name:'Helicóptero Márquez',   draw:drawFrancia,   color:'#7a4a2b', points:35, img:'assets/francia',   wiki:['Francia Márquez','Francia Elena Márquez Mina'], fem:true },
+  { name:'Helicotero Márquez',    draw:drawFrancia,   color:'#7a4a2b', points:35, img:'assets/francia',   wiki:['Francia Márquez','Francia Elena Márquez Mina'], fem:true },
   { name:'El Camaleón Benedetti', draw:drawBenedetti, color:'#d9a06f', points:35, img:'assets/benedetti', wiki:['Armando Benedetti','Armando Benedetti Villaneda'] },
   { name:'La Cacica Quilcué',     draw:drawQuilcue,   color:'#c98a55', points:40, img:'assets/quilcue',   wiki:['Aída Quilcué','Aida Quilcué'], fem:true },
   { name:'La Heredera Pizarro',   draw:drawPizarro,   color:'#e7bd93', points:40, img:'assets/pizarro',   wiki:['María José Pizarro','María José Pizarro Rodríguez'], fem:true },
@@ -2067,27 +2098,40 @@ startBtn.addEventListener('click', beginFromInput);
 nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter') beginFromInput(); });
 againBtn.addEventListener('click', ()=> startGame(state.playerName||'Anónimo'));
 winAgainBtn.addEventListener('click', ()=> startGame(state.playerName||'Anónimo'));
-winShareBtn.addEventListener('click', shareWin);
 
-// Comparte el logro (Web Share API en móvil; WhatsApp como respaldo)
-function shareWin(){
-  const url = 'https://nithioso.github.io/SalvaAcolombia/';
-  const txt = '¡Gané Salva a Colombia con el Tigre y JoseManuel! 🐯🇨🇴 '
-            + 'Puntaje: '+state.score+' · Mundos: '+state.worlds+'. ¡Firmes por la patria! 🫡';
-  try{
-    if(navigator.share){
-      navigator.share({ title:'Salva a Colombia', text:txt, url }).catch(()=>{});
-    } else if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(txt+' '+url).then(
-        ()=> alert('¡Copiado! Pégalo donde quieras compartirlo. 🐯🇨🇴'),
-        ()=> window.open('https://wa.me/?text='+encodeURIComponent(txt+' '+url),'_blank')
-      );
-    } else {
-      window.open('https://wa.me/?text='+encodeURIComponent(txt+' '+url),'_blank');
-    }
-  }catch(e){
-    window.open('https://wa.me/?text='+encodeURIComponent(txt+' '+url),'_blank');
+// ---------- Compartir en redes ----------
+const SHARE_URL = 'https://nithioso.github.io/SalvaAcolombia/';
+// Texto según el contexto: 'win' (logro) o 'invite' (invitación desde el menú)
+function shareText(ctx){
+  if(ctx==='win'){
+    return '¡Gané Salva a Colombia con el Tigre y JoseManuel! 🐯🇨🇴 '
+         + 'Puntaje: '+state.score+' · Mundos: '+state.worlds+'. ¡Firmes por la patria! 🫡';
   }
+  return '¡Juega Salva a Colombia con el Tigre y JoseManuel! 🐯🇨🇴 '
+       + 'Derrota al Parto Histérico. ¡Firmes por la patria! 🫡';
+}
+// Abre la red elegida con el texto + enlace
+function shareTo(net, ctx){
+  const text = shareText(ctx);
+  const t = encodeURIComponent(text);
+  const u = encodeURIComponent(SHARE_URL);
+  let link = '';
+  if(net==='whatsapp') link = 'https://wa.me/?text=' + encodeURIComponent(text+' '+SHARE_URL);
+  else if(net==='x')   link = 'https://twitter.com/intent/tweet?text=' + t + '&url=' + u;
+  else if(net==='facebook') link = 'https://www.facebook.com/sharer/sharer.php?u=' + u + '&quote=' + t;
+  else if(net==='copy'){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text+' '+SHARE_URL).then(()=> alert('¡Copiado! Pégalo donde quieras. 🐯🇨🇴'), ()=>{});
+    } else { alert(text+' '+SHARE_URL); }
+    return;
+  }
+  if(link) window.open(link, '_blank', 'noopener,noreferrer');
+}
+// Conecta todos los botones de compartir (menú y victoria)
+if(document.querySelectorAll){
+  Array.prototype.forEach.call(document.querySelectorAll('.shareBtn'), btn=>{
+    btn.addEventListener('click', ()=> shareTo(btn.dataset.net, btn.dataset.ctx));
+  });
 }
 pauseBtn.addEventListener('click', togglePause);
 muteBtn.addEventListener('click', toggleMute);
