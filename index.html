@@ -358,6 +358,7 @@ const state = {
   running:false, playerName:'', score:0, level:1, lives:3,
   player:null, bullets:[], enemyBullets:[], enemies:[], particles:[], stars:[],
   powerups:[], boss:null,
+  popups:[], banner:null, shakeT:0, shakeMag:0,
   keys:{}, fireCooldown:0, lastTime:0, formationDir:1, formationT:0,
   spawnFlash:0, invuln:0, paused:false, autofire:false
 };
@@ -968,6 +969,7 @@ function buildWave(level){
   if(level % 5 === 0){
     state.boss = createBoss(level);
     state.formationDir = 1; state.formationT = 0;
+    showBanner('¡JEFE: '+state.boss.type.name.toUpperCase()+'!', '#ff3b5c');
     return;
   }
   const cols = 6;
@@ -997,6 +999,7 @@ function buildWave(level){
   }
   state.formationDir = 1;
   state.formationT = 0;
+  showBanner('NIVEL '+level);
 }
 
 // ========================================================
@@ -1325,10 +1328,12 @@ function update(dt){
         e.hp--;
         if(e.hp<=0){
           e.alive=false;
-          state.score += e.type.points * state.level;
+          const pts = e.type.points * state.level;
+          state.score += pts;
+          addPopup(e.x, e.y, '+'+pts);
           spawnExplosion(e.x,e.y,e.type.color);
           sfxExplosion();
-          if(Math.random() < 0.14) spawnPowerup(e.x, e.y);   // suelta power-up
+          if(Math.random() < 0.16) spawnPowerup(e.x, e.y);   // suelta power-up
         } else {
           spawnExplosion(e.x,e.y,'#ffffff',6);
         }
@@ -1391,6 +1396,12 @@ function update(dt){
   }
   state.particles = state.particles.filter(pt=> pt.life>0);
 
+  // puntajes flotantes, cartel y sacudida de pantalla
+  for(const pop of state.popups){ pop.y -= 28*dt; pop.t -= dt; }
+  state.popups = state.popups.filter(pop=> pop.t>0);
+  if(state.banner){ state.banner.t -= dt; if(state.banner.t<=0) state.banner=null; }
+  if(state.shakeT>0){ state.shakeT -= dt; if(state.shakeT<=0) state.shakeMag=0; }
+
   // si un enemigo de la formación llega abajo, se pierde la partida
   for(const e of state.enemies){
     if(e.alive && e.y > H-70 && !e.diving){
@@ -1421,30 +1432,35 @@ function updateBoss(dt, d){
   b.x += b.vx*dt;
   if(b.x < b.r+8){ b.x=b.r+8; b.vx=Math.abs(b.vx); }
   if(b.x > W-b.r-8){ b.x=W-b.r-8; b.vx=-Math.abs(b.vx); }
-  b.y = 110 + Math.sin(b.t*1.2)*18;
+  // se mueve más rápido y agresivo al quedar con poca vida (enfurecido)
+  const enraged = b.hp < b.maxHp*0.35;
+  b.y = 110 + Math.sin(b.t*(enraged?1.8:1.2))*18;
   b.fireTimer -= dt;
   if(b.fireTimer<=0){
-    b.fireTimer = Math.max(0.55, 1.5 - state.level*0.03);
+    b.fireTimer = Math.max(0.45, (enraged?0.95:1.5) - state.level*0.03);
     const speed = d.enemyBulletSpeed*0.85;
-    // abanico de disparos hacia abajo
-    const n=5;
+    // abanico de disparos hacia abajo (más amplio si está enfurecido)
+    const n = enraged ? 7 : 5;
     for(let i=0;i<n;i++){
-      const a = Math.PI/2 + (i-(n-1)/2)*0.28;
+      const a = Math.PI/2 + (i-(n-1)/2)*0.26;
       state.enemyBullets.push({ x:b.x, y:b.y+b.r*0.5, vx:Math.cos(a)*speed, vy:Math.sin(a)*speed, r:5 });
     }
     // un disparo dirigido al jugador
     const ang=Math.atan2(p.y-b.y, p.x-b.x);
     state.enemyBullets.push({ x:b.x, y:b.y+b.r*0.5, vx:Math.cos(ang)*speed, vy:Math.sin(ang)*speed, r:5 });
-    tone(120,0.1,0.04,'sawtooth');
+    tone(enraged?150:120, 0.1, 0.04, 'sawtooth');
   }
 }
 
 // El jefe es derrotado: puntos, explosión grande y recompensa
 function defeatBoss(){
   const b=state.boss; if(!b) return;
-  state.score += 500*state.level;
+  const pts = 500*state.level;
+  state.score += pts;
+  addPopup(b.x, b.y, '+'+pts);
   spawnExplosion(b.x, b.y, b.type.color, 46);
   spawnPowerup(b.x, b.y);
+  addShake(12, 0.6);
   sfxBossDie();
   state.boss=null;
   updateHUD();
@@ -1455,11 +1471,11 @@ function defeatBoss(){
 function spawnPowerup(x,y){
   const r=Math.random();
   const type = r<0.45 ? 'double' : (r<0.85 ? 'shield' : 'life');
-  state.powerups.push({ x, y, vy:95, r:13, type, t:0 });
+  state.powerups.push({ x, y, vy:80, r:13, type, t:0 });
 }
 // Aplica el efecto al recogerlo
 function applyPowerup(pu){
-  if(pu.type==='double')      state.player.doubleTimer = 9;
+  if(pu.type==='double')      state.player.doubleTimer = 10;
   else if(pu.type==='shield') state.player.shieldTimer = 7;
   else if(pu.type==='life')   state.lives = Math.min(5, state.lives+1);
   sfxPowerup();
@@ -1484,6 +1500,7 @@ function drawPowerup(pu){
 function hitPlayer(){
   state.lives--;
   spawnExplosion(state.player.x, state.player.y, '#ffcf33', 20);
+  addShake(9, 0.4);
   sfxHit();
   updateHUD();
   if(state.lives<=0){ endGame(false); }
@@ -1507,6 +1524,17 @@ function spawnExplosion(x,y,color,n){
       life:Math.random()*0.6+0.3, color, r:Math.random()*3+1 });
   }
 }
+
+// ---------- Efectos de presentación (cartel, sacudida, puntaje flotante) ----------
+// Cartel central breve (p. ej. "NIVEL 2" o "¡JEFE!")
+function showBanner(text, color){ state.banner = { text, color: color||'#ffcf33', t:1.6 }; }
+// Sacudida de pantalla (magnitud en px, duración en s)
+function addShake(mag, dur){
+  state.shakeMag = Math.max(state.shakeMag, mag);
+  state.shakeT   = Math.max(state.shakeT, dur);
+}
+// Número de puntaje que sube y se desvanece
+function addPopup(x,y,text){ state.popups.push({ x, y, text, t:0.9 }); }
 
 // Termina la partida, guarda el puntaje y muestra el Top 5
 function endGame(won){
@@ -1538,6 +1566,12 @@ function endGame(won){
 // ========================================================
 function render(){
   ctx.clearRect(0,0,W,H);
+  // sacudida de pantalla: desplaza todo el "mundo" unos píxeles
+  ctx.save();
+  if(state.shakeT>0){
+    const m = state.shakeMag * Math.min(1, state.shakeT*3);
+    ctx.translate((Math.random()*2-1)*m, (Math.random()*2-1)*m);
+  }
   // estrellas del fondo
   ctx.fillStyle='#fff';
   for(const s of state.stars){
@@ -1615,6 +1649,42 @@ function render(){
     ctx.beginPath(); ctx.arc(pt.x,pt.y,pt.r,0,7); ctx.fill();
   }
   ctx.globalAlpha=1;
+
+  // puntajes flotantes
+  ctx.textAlign='center'; ctx.font='bold 13px Arial';
+  for(const pop of state.popups){
+    ctx.globalAlpha = Math.max(0, pop.t/0.9);
+    ctx.fillStyle = '#ffe14d';
+    ctx.fillText(pop.text, pop.x, pop.y);
+  }
+  ctx.globalAlpha=1;
+
+  ctx.restore();   // fin de la sacudida (lo que sigue es interfaz, sin temblor)
+
+  // cartel central (NIVEL / JEFE)
+  if(state.banner){
+    const a = Math.min(1, state.banner.t/0.4);   // se desvanece al final
+    ctx.globalAlpha = a;
+    ctx.fillStyle = state.banner.color;
+    ctx.font = 'bold 30px Arial'; ctx.textAlign='center';
+    ctx.fillText(state.banner.text, W/2, H/2 - 10);
+    ctx.globalAlpha = 1;
+  }
+
+  // indicadores de power-ups activos (esquina inferior izquierda)
+  if(state.player){
+    let iy = H-14;
+    const drawTimer=(label,timer,max,col)=>{
+      if(timer<=0) return;
+      ctx.fillStyle=col; ctx.font='bold 11px Arial'; ctx.textAlign='left';
+      ctx.fillText(label, 10, iy);
+      ctx.fillStyle='rgba(255,255,255,.25)'; ctx.fillRect(34,iy-8,46,5);
+      ctx.fillStyle=col; ctx.fillRect(34,iy-8,46*Math.min(1,timer/max),5);
+      iy -= 14;
+    };
+    drawTimer('x2', state.player.doubleTimer, 10, '#2ad1c0');
+    drawTimer('🛡', state.player.shieldTimer, 7, '#5aa6ff');
+  }
 }
 
 // Animación de fondo del menú (caras flotando sobre las estrellas)
