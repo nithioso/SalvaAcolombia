@@ -121,6 +121,15 @@
   }
   #pauseBtn.hidden{display:none;}
 
+  /* Firma del autor */
+  #sig{
+    flex:0 0 auto;text-align:center;font-size:11px;
+    padding:7px 10px;color:#8b93c4;
+    background:#090c1c;border-top:1px solid #1b2150;
+  }
+  #sig a{color:var(--accent);text-decoration:none;font-weight:700;}
+  #sig a:hover{text-decoration:underline;}
+
   /* Touch / generic responsive tweaks */
   @media (max-width:520px){
     header h1{font-size:15px;}
@@ -223,6 +232,10 @@
     <div class="stat" id="lives"><span id="hLives">♥♥♥</span></div>
     <button id="muteBtn" title="Silenciar / activar sonido">🔊</button>
     <button id="pauseBtn" class="hidden">⏸ Pausa</button>
+  </div>
+
+  <div id="sig">Creado con amoor por la patria por
+    <a href="https://x.com/NiThiOso" target="_blank" rel="noopener noreferrer">@NiThiOso</a> 🐯🇨🇴
   </div>
 </div>
 
@@ -408,7 +421,7 @@ function renderGlobalScores(list, hiName, hiScore){
 const state = {
   running:false, playerName:'', score:0, level:1, lives:3,
   player:null, bullets:[], enemyBullets:[], enemies:[], particles:[], stars:[],
-  powerups:[], boss:null, worlds:0, nextWaveDelay:0,
+  powerups:[], boss:null, worlds:0, nextWaveDelay:0, advancing:false,
   popups:[], banner:null, shakeT:0, shakeMag:0,
   keys:{}, fireCooldown:0, lastTime:0, formationDir:1, formationT:0,
   spawnFlash:0, invuln:0, paused:false, autofire:false
@@ -1080,6 +1093,8 @@ function createBoss(level){
 function buildWave(level){
   state.enemies = [];
   state.boss = null;
+  state.enemyBullets = [];     // cada nivel empieza con la pantalla limpia
+  state.advancing = false;
   // Niveles múltiplos de 5: aparece un jefe en lugar de la formación
   if(level % 5 === 0){
     state.boss = createBoss(level);
@@ -1303,7 +1318,7 @@ function startGame(name){
   try { localStorage.setItem(LS_NAME, name); } catch(e){}   // recuerda el nombre
   state.score = 0; state.level = 1; state.lives = 5;   // más vidas
   state.bullets=[]; state.enemyBullets=[]; state.particles=[];
-  state.powerups=[]; state.boss=null; state.worlds=0; state.nextWaveDelay=0;
+  state.powerups=[]; state.boss=null; state.worlds=0; state.nextWaveDelay=0; state.advancing=false;
   state.popups=[]; state.banner=null; state.shakeT=0; state.shakeMag=0;
   state.player = createPlayer();
   // Arranque más fuerte: arma nivel 2 (disparo doble) y escudo de cortesía
@@ -1568,16 +1583,27 @@ function update(dt){
     }
   }
 
-  // nivel superado (formación eliminada y sin jefe) => sube de nivel
-  if(!state.boss && state.enemies.every(e=>!e.alive)){
-    if(state.nextWaveDelay > 0){
-      state.nextWaveDelay -= dt;   // espera breve para celebrar el mundo ganado
-    } else {
-      state.level++;
-      state.invuln = 1.0;
-      buildWave(state.level);
-      updateHUD();
-      sfxLevel();
+  // nivel superado (sin jefe vivo) => breve respiro y sube de nivel
+  if(!state.boss){
+    const formationCleared = state.enemies.length>0 && state.enemies.every(e=>!e.alive);
+    const afterBoss = state.enemies.length===0;   // tras derrotar al jefe del mundo
+    if(formationCleared || afterBoss){
+      // al despejar una formación normal: programa un respiro y limpia las balas
+      if(formationCleared && !state.advancing){
+        state.advancing = true;
+        state.nextWaveDelay = 0.7;     // respiro para que la pantalla quede limpia
+        state.enemyBullets = [];       // limpia balas enemigas pendientes
+      }
+      if(state.nextWaveDelay > 0){
+        state.nextWaveDelay -= dt;
+      } else {
+        state.advancing = false;
+        state.level++;
+        state.invuln = 1.0;
+        buildWave(state.level);
+        updateHUD();
+        sfxLevel();
+      }
     }
   }
 }
@@ -1656,7 +1682,7 @@ function defeatBoss(){
     return;
   }
   spawnPowerup(b.x, b.y);
-  state.nextWaveDelay = 2.4;      // deja ver la celebración antes del próximo mundo
+  state.nextWaveDelay = 2.0;      // deja ver la celebración antes del próximo mundo
   celebrateWorld(b.type);         // tigres + grito de batalla (con género correcto)
   updateHUD();
 }
@@ -1688,17 +1714,30 @@ function winGame(){
   if(onlineEnabled()) submitGlobalScore(state.playerName, finalScore, worlds);
 }
 
-// Gritos de batalla / campaña de los Tigres (se elige uno al azar al ganar)
+// Gritos de batalla / campaña de los Tigres (se elige uno al azar al ganar).
+// Frases en la línea de los "Defensores de la Patria" — espíritu de tigre,
+// patria y unidad (no son citas textuales de nadie).
 const TIGER_CRIES = [
   '¡POR LA PATRIA, MILAGRO! 🙏🐯',
   '¡FIRMES POR LA PATRIA! 🫡',
   '¡EL TIGRE RUGE POR COLOMBIA! 🐯🇨🇴',
-  '¡DEFENSORES DE LA PATRIA! 🛡️🇨🇴',
-  '¡COLOMBIA SE RESPETA! 🇨🇴',
+  '¡DEFENSORES DE LA PATRIA, DE PIE! 🛡️🇨🇴',
+  '¡COLOMBIA SE RESPETA, CARAJO! 🇨🇴',
   '¡FUERZA, FE Y PATRIA! 🙏🐯',
   '¡NI UN PASO ATRÁS! 🫡',
   '¡GARRA Y CORAZÓN POR COLOMBIA! 🐯❤️',
-  '¡LOS TIGRES NO SE RINDEN! 🐯🔥'
+  '¡LOS TIGRES NO SE RINDEN! 🐯🔥',
+  '¡DESPERTÓ EL TIGRE QUE LLEVAS DENTRO! 🐯',
+  '¡CON LA PATRIA NO SE JUEGA! 🇨🇴',
+  '¡ABELARDO Y JOSEMANUEL, FIRMES! 🐯🤝',
+  '¡SALVAMOS A COLOMBIA, UNO A UNO! 🇨🇴',
+  '¡EL QUE NO SALTA ES DEL PARTO! 😼',
+  '¡MÁS TIGRE QUE NUNCA! 🐯🔥',
+  '¡PATRIA, FAMILIA Y LIBERTAD! 🇨🇴🙏',
+  '¡RUGE COLOMBIA, RUGE! 🐯',
+  '¡UNIDOS SOMOS UNA MANADA! 🐯🐯🐯',
+  '¡HONOR Y PATRIA SIEMPRE! 🫡🇨🇴',
+  '¡VAMOS QUE VAMOS, MI COMANDANTE! 🐯'
 ];
 // Celebración al ganar un mundo (derrotar a un jefe): tigres, banderas y grito
 function celebrateWorld(bossType){

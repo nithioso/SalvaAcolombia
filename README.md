@@ -116,3 +116,7 @@ Seguridad del marcador:
   texto), por lo que un dato malicioso en la base no puede inyectar nada.
 
 Si no hay conexión, el juego sigue funcionando con el **Top 5 local**.
+
+## ✍️ Autor
+
+Creado con amoor por la patria por [@NiThiOso](https://x.com/NiThiOso) 🐯🇨🇴
