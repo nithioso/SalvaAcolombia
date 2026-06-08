@@ -341,6 +341,7 @@ const STR = {
     winMsg:(name,sc,w)=>'<b style="color:#fff">'+name+'</b>, ¡<b>ganaste salvando a Colombia</b>! 🇨🇴<br><br>'+
       'Ahora tu paso para salvarla es <b>marcar la X sobre el Tigre y José Manuel</b> este <b>21 de junio</b>.<br>'+
       '¡Vamos firmes por la patria! 🐯🫡<br><br>Puntaje: <b style="color:var(--good)">'+sc+'</b> · Mundos: <b>'+w+'</b>',
+    cheatOn:'🐯 ¡MODO TIGRE ACTIVADO!', cheatSub:'Armas, escudo y vidas al doble 🫡', combo:'COMBO',
     speakWin:'¡Ganaste salvando a Colombia! Marca la X por el Tigre y José Manuel este 21 de junio. ¡Firmes por la patria!',
     copied:'¡Copiado! Pégalo donde quieras. 🐯🇨🇴',
     shareWinTxt:(sc,w)=>'¡Gané Salva a Colombia con el Tigre y JoseManuel! 🐯🇨🇴 Puntaje: '+sc+' · Mundos: '+w+'. ¡Firmes por la patria! 🫡',
@@ -386,6 +387,7 @@ const STR = {
     winMsg:(name,sc,w)=>'<b style="color:#fff">'+name+'</b>, you <b>won and saved Colombia</b>! 🇨🇴<br><br>'+
       'Now your move to save it: <b>vote the X for the Tiger and José Manuel</b> this <b>June 21</b>.<br>'+
       'Firm for the homeland! 🐯🫡<br><br>Score: <b style="color:var(--good)">'+sc+'</b> · Worlds: <b>'+w+'</b>',
+    cheatOn:'🐯 TIGER MODE ON!', cheatSub:'Weapons, shield & lives doubled 🫡', combo:'COMBO',
     speakWin:'You won and saved Colombia! Vote the X for the Tiger and José Manuel this June 21. Firm for the homeland!',
     copied:'Copied! Paste it anywhere. 🐯🇨🇴',
     shareWinTxt:(sc,w)=>'I beat Save Colombia with the Tiger & JoseManuel! 🐯🇨🇴 Score: '+sc+' · Worlds: '+w+'. Firm for the homeland! 🫡',
@@ -588,7 +590,8 @@ const state = {
   powerups:[], boss:null, worlds:0, nextWaveDelay:0, advancing:false,
   popups:[], banner:null, shakeT:0, shakeMag:0,
   keys:{}, fireCooldown:0, lastTime:0, formationDir:1, formationT:0,
-  spawnFlash:0, invuln:0, paused:false, autofire:false, cheat:false
+  spawnFlash:0, invuln:0, paused:false, autofire:false, cheat:false,
+  combo:0, comboTimer:0, flashT:0, flashColor:'#fff'
 };
 
 // ---------- Campo de estrellas (fondo) ----------
@@ -1257,7 +1260,7 @@ function createBoss(level){
            finalBoss:isFinal, phase:1, maxPhase:isFinal?3:1 };
 }
 
-function buildWave(level){
+function buildWave(level, announce){
   state.enemies = [];
   state.boss = null;
   state.enemyBullets = [];     // cada nivel empieza con la pantalla limpia
@@ -1298,7 +1301,7 @@ function buildWave(level){
   }
   state.formationDir = 1;
   state.formationT = 0;
-  showBanner(TR.level+' '+level, '#ffcf33', 30, 1.8, TR.pilotsShort(currentHero().name));
+  if(announce!==false) showBanner(TR.level+' '+level, '#ffcf33', 30, 1.8, TR.pilotsShort(currentHero().name));
 }
 
 // ========================================================
@@ -1487,6 +1490,7 @@ function startGame(name){
   state.bullets=[]; state.enemyBullets=[]; state.particles=[];
   state.powerups=[]; state.boss=null; state.worlds=0; state.nextWaveDelay=0; state.advancing=false;
   state.popups=[]; state.banner=null; state.shakeT=0; state.shakeMag=0;
+  state.combo=0; state.comboTimer=0; state.flashT=0;
   state.player = createPlayer();
   // Arranque más fuerte: arma nivel 2 (disparo doble) y escudo de cortesía
   state.player.weapon = 2;
@@ -1512,6 +1516,8 @@ function startGame(name){
   buildWave(state.level);
   hPlayer.textContent = name;
   updateHUD();
+  // guiño del hack: si está activo, anúncialo (encima del cartel de nivel)
+  if(state.cheat){ showBanner(TR.cheatOn, '#ffd100', 26, 2.6, TR.cheatSub); addFlash('#ffd100', 0.5); }
   startScreen.classList.add('hidden');
   overScreen.classList.add('hidden');
   pauseScreen.classList.add('hidden');
@@ -1697,7 +1703,10 @@ function update(dt){
         e.hp--;
         if(e.hp<=0){
           e.alive=false;
-          const pts = e.type.points * state.level;
+          // combo: sube con cada baja; multiplica el puntaje
+          state.combo++; state.comboTimer = 2.6;
+          const mult = 1 + Math.min(state.combo,20)*0.05;     // hasta x2
+          const pts = Math.round(e.type.points * state.level * mult);
           state.score += pts;
           addPopup(e.x, e.y, '+'+pts);
           spawnExplosion(e.x,e.y,e.type.color);
@@ -1770,6 +1779,8 @@ function update(dt){
   state.popups = state.popups.filter(pop=> pop.t>0);
   if(state.banner){ state.banner.t -= dt; if(state.banner.t<=0) state.banner=null; }
   if(state.shakeT>0){ state.shakeT -= dt; if(state.shakeT<=0) state.shakeMag=0; }
+  if(state.flashT>0){ state.flashT -= dt; }
+  if(state.comboTimer>0){ state.comboTimer -= dt; if(state.comboTimer<=0) state.combo=0; }
 
   // si un enemigo de la formación llega abajo, se pierde la partida
   for(const e of state.enemies){
@@ -1784,21 +1795,28 @@ function update(dt){
     const formationCleared = state.enemies.length>0 && state.enemies.every(e=>!e.alive);
     const afterBoss = state.enemies.length===0;   // tras derrotar al jefe del mundo
     if(formationCleared || afterBoss){
-      // al despejar una formación normal: programa un respiro y limpia las balas
+      // al despejar una formación normal: pausa más larga, limpia la pantalla
+      // (balas + recompensas) y anuncia el PRÓXIMO nivel
       if(formationCleared && !state.advancing){
         state.advancing = true;
-        state.nextWaveDelay = 0.7;     // respiro para que la pantalla quede limpia
-        state.enemyBullets = [];       // limpia balas enemigas pendientes
+        state.nextWaveDelay = 1.6;     // respiro para limpiar y sentir el avance
+        state.enemyBullets = [];       // limpia balas enemigas
+        state.powerups = [];           // limpia recompensas pendientes
+        const nextLvl = state.level+1;
+        const heroName = HEROES[Math.floor((nextLvl-1)/5) % HEROES.length].name;
+        addFlash('#9ad8ff', 0.3);
+        sfxLevel();
+        showBanner(TR.level+' '+nextLvl, '#9ad8ff', 30, state.nextWaveDelay, TR.pilotsShort(heroName));
       }
       if(state.nextWaveDelay > 0){
         state.nextWaveDelay -= dt;
       } else {
+        const announce = !state.advancing;   // tras jefe (sin breather) sí se anuncia
         state.advancing = false;
         state.level++;
         state.invuln = 1.0;
-        buildWave(state.level);
+        buildWave(state.level, announce);    // si hubo breather, ya se anunció
         updateHUD();
-        sfxLevel();
       }
     }
   }
@@ -1812,6 +1830,7 @@ function isProtected(){
 // Anuncio al cambiar de fase el jefe final
 function onBossPhase(b){
   addShake(10, 0.5);
+  addFlash('#ff3b5c', 0.4);
   spawnExplosion(b.x, b.y, '#ffffff', 18);
   sfxBossHit(); tone(200,0.18,0.05,'square');
   showBanner(TR.phase(b.type.name.toUpperCase(), b.phase), '#ff3b5c', 24, 1.6,
@@ -1869,6 +1888,7 @@ function defeatBoss(){
   addPopup(b.x, b.y, '+'+pts);
   spawnExplosion(b.x, b.y, b.type.color, 46);
   addShake(12, 0.6);
+  addFlash('#ffd100', 0.45);
   sfxBossDie();
   state.boss=null;
   // ¿Era el ÚLTIMO villano (Gustavo Petro)? Entonces se gana el juego.
@@ -1996,8 +2016,10 @@ function drawPowerup(pu){
 
 function hitPlayer(){
   state.lives--;
+  state.combo = 0; state.comboTimer = 0;       // se pierde la racha
   spawnExplosion(state.player.x, state.player.y, '#ffcf33', 20);
   addShake(9, 0.4);
+  addFlash('#ff4d6d', 0.35);
   sfxHit();
   updateHUD();
   if(state.lives<=0){ endGame(false); }
@@ -2034,6 +2056,10 @@ function addShake(mag, dur){
 }
 // Número de puntaje que sube y se desvanece
 function addPopup(x,y,text){ state.popups.push({ x, y, text, t:0.9 }); }
+// Destello de pantalla (color breve)
+function addFlash(color, dur){ state.flashColor = color||'#fff'; state.flashT = Math.max(state.flashT, dur||0.25); }
+// Color de ambiente según el mundo actual (cambia cada 5 niveles)
+function worldHue(){ return (Math.floor((state.level-1)/5) * 47) % 360; }
 
 // Termina la partida, guarda el puntaje y muestra el Top 5
 function endGame(won){
@@ -2071,17 +2097,25 @@ function endGame(won){
 // ========================================================
 function render(){
   ctx.clearRect(0,0,W,H);
+  // fondo con color de ambiente según el mundo
+  const hue = worldHue();
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0, 'hsl('+hue+',60%,9%)');
+  bg.addColorStop(1, '#02030a');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
   // sacudida de pantalla: desplaza todo el "mundo" unos píxeles
   ctx.save();
   if(state.shakeT>0){
     const m = state.shakeMag * Math.min(1, state.shakeT*3);
     ctx.translate((Math.random()*2-1)*m, (Math.random()*2-1)*m);
   }
-  // estrellas del fondo
+  // estrellas del fondo (se estiran en "warp" durante la transición de nivel)
+  const warp = state.advancing;
   ctx.fillStyle='#fff';
   for(const s of state.stars){
     ctx.globalAlpha = 0.3 + (s.s/2.4)*0.7;
-    ctx.fillRect(s.x, s.y, s.s, s.s);
+    if(warp){ ctx.fillRect(s.x, s.y, s.s, s.s + s.v*0.12); }   // líneas de velocidad
+    else { ctx.fillRect(s.x, s.y, s.s, s.s); }
   }
   ctx.globalAlpha=1;
 
@@ -2168,7 +2202,24 @@ function render(){
   }
   ctx.globalAlpha=1;
 
+  // contador de COMBO (racha de bajas sin recibir daño)
+  if(state.combo>=3){
+    ctx.globalAlpha = Math.min(1, state.comboTimer);
+    ctx.fillStyle = '#ffd100'; ctx.textAlign='center';
+    ctx.font = 'bold '+(16 + Math.min(state.combo,30))+'px Arial';
+    ctx.fillText(TR.combo+' x'+state.combo, W/2, 92);
+    ctx.globalAlpha = 1;
+  }
+
   ctx.restore();   // fin de la sacudida (lo que sigue es interfaz, sin temblor)
+
+  // destello de pantalla (subida de nivel, jefe, daño, victoria)
+  if(state.flashT>0){
+    ctx.globalAlpha = Math.min(0.5, state.flashT*1.4);
+    ctx.fillStyle = state.flashColor;
+    ctx.fillRect(0,0,W,H);
+    ctx.globalAlpha = 1;
+  }
 
   // cartel central (NIVEL / JEFE / celebración al ganar un mundo)
   if(state.banner){
