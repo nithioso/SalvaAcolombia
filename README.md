@@ -125,8 +125,12 @@ Seguridad del marcador:
   se permite editar ni borrar** (no hay policies de UPDATE/DELETE).
 - El cliente además **sanea** todo lo que recibe (enteros acotados + escape de
   texto), por lo que un dato malicioso en la base no puede inyectar nada.
+- **Blindaje del servidor:** el script [`supabase/schema.sql`](supabase/schema.sql)
+  deja la base lista con **RLS** (solo lectura e inserción), **CHECK constraints**
+  que rechazan valores fuera de rango aunque alguien llame a la API directamente,
+  y un **límite de tasa** anti-inundación. Aplícalo desde *Supabase → SQL Editor*.
 
-Si no hay conexión, el juego sigue funcionando con el **Top 5 local**.
+Si no hay conexión, el juego sigue funcionando sin el récord universal.
 
 ## ✍️ Autor
 
