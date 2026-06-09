@@ -1529,7 +1529,7 @@ function tryFire(){
   else if(w===3){ shot(0); shot(-12,-110); shot(12,110); }
   else if(w===4){ shot(-9); shot(9); shot(-17,-150); shot(17,150); }
   else { shot(0); shot(-11); shot(11); shot(-20,-190); shot(20,190); }   // w>=5
-  beep(rapid?980:880, 0.045, 0.03);
+  sfxShot(rapid);   // 🐯 disparo con "zarpazo" felino
 }
 
 // ========================================================
@@ -1649,6 +1649,47 @@ function sfxRoar(opts){
     o.stop(t0+dur); o2.stop(t0+dur); lfo.stop(t0+dur);
   }catch(e){}
 }
+// 🐯 Disparo con "zarpazo" felino: tono corto + un swish de ruido agudo
+function sfxShot(rapid){
+  if(!audio.on) return;
+  tone(rapid?980:860, 0.05, 0.026, 'square');
+  const c=getCtx(); if(!c) return;
+  try{
+    const dur=0.06, n=Math.floor(c.sampleRate*dur);
+    const buf=c.createBuffer(1,n,c.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);   // ruido que se apaga
+    const src=c.createBufferSource(); src.buffer=buf;
+    const hp=c.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=1900;
+    const g=c.createGain(); g.gain.value=0.045;
+    src.connect(hp); hp.connect(g); g.connect(audio.master); src.start();
+  }catch(e){}
+}
+// 😼 Quejido gracioso del villano al ser derrotado (estilo "trombón triste")
+function sfxWhine(){
+  if(!audio.on) return;
+  const c=getCtx(); if(!c) return;
+  try{
+    const notes=[294,277,262,247];   // re, do#, do, si — descendente "womp womp"
+    notes.forEach((f,i)=>{
+      const t0=c.currentTime + i*0.17;
+      const o=c.createOscillator(), g=c.createGain();
+      o.type='sawtooth';
+      o.frequency.setValueAtTime(f*1.06, t0);
+      o.frequency.exponentialRampToValueAtTime(f*0.93, t0+0.15);   // el "doblez" cómico
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.075, t0+0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0+0.16);
+      o.connect(g); g.connect(audio.master);
+      o.start(t0); o.stop(t0+0.17);
+    });
+  }catch(e){}
+}
+// ⚠️ Latido de alerta cuando queda 1 vida (lub-dub grave)
+function sfxHeartbeat(){
+  if(!audio.on) return;
+  tone(70, 0.10, 0.06, 'sine');
+  setTimeout(()=>tone(58, 0.13, 0.05, 'sine'), 165);
+}
 // Voz: pronuncia el grito de batalla (sin emojis) si el navegador lo soporta
 function speak(text){
   if(!audio.on) return;
@@ -1664,20 +1705,39 @@ function speak(text){
   }catch(e){}
 }
 
-// Música de fondo procedimental (bajo + arpegio en bucle)
+// Música de fondo procedimental (bajo + arpegio en bucle).
+// Evoluciona por MUNDO: cada mundo transpone el tono, alterna el timbre y
+// acelera un poco el tempo, para dar sensación de progresión y tensión.
 const MUSIC_BASS = [110,110,146.83,98];                 // La, La, Re, Sol
 const MUSIC_ARP  = [440,554.37,659.25,554.37, 587.33,440,659.25,880];
+const MUSIC_SEMI = [0,2,3,5,7,8,10,5,3,2];              // transposición por mundo
+function worldIdx(){ return Math.floor((state.level-1)/5); }
+// Tempo: más rápido a medida que avanzan los mundos (con un piso)
+function musicMs(){ return Math.max(120, 200 - worldIdx()*9); }
+// "Mood" del mundo actual: semitonos a transponer + timbres
+function musicMood(){
+  const w = worldIdx();
+  return {
+    tr:   Math.pow(2, MUSIC_SEMI[w % MUSIC_SEMI.length] / 12),  // factor de transposición
+    arp:  (w % 2) ? 'sawtooth' : 'triangle',                   // arpegio cambia de color
+    bass: (w % 3 === 2) ? 'square' : 'sine'                    // bajo más marcado a ratos
+  };
+}
 function startMusic(){
   stopMusic();
   if(!audio.on || !getCtx()) return;
   audio.step = 0;
-  audio.musicTimer = setInterval(musicTick, 200);
+  audio.world = worldIdx();
+  audio.musicTimer = setInterval(musicTick, musicMs());
 }
 function musicTick(){
   if(!audio.on || !state.running || state.paused) return;
+  // ¿cambió de mundo? reprograma el tempo y el tono nuevos
+  if(worldIdx() !== audio.world){ startMusic(); return; }
   const s = audio.step++;
-  tone(MUSIC_ARP[s % MUSIC_ARP.length], 0.16, 0.022, 'triangle');   // arpegio suave
-  if(s % 4 === 0) tone(MUSIC_BASS[(s/4) % MUSIC_BASS.length], 0.34, 0.05, 'sine'); // bajo
+  const m = musicMood();
+  tone(MUSIC_ARP[s % MUSIC_ARP.length] * m.tr, 0.16, 0.022, m.arp);   // arpegio
+  if(s % 4 === 0) tone(MUSIC_BASS[(s/4) % MUSIC_BASS.length] * m.tr, 0.34, 0.05, m.bass); // bajo
 }
 function stopMusic(){ if(audio.musicTimer){ clearInterval(audio.musicTimer); audio.musicTimer=null; } }
 // Silenciar / reactivar el sonido
@@ -1872,6 +1932,11 @@ function update(dt){
   if(state.invuln>0) state.invuln -= dt;
   if(p.rapidTimer>0) p.rapidTimer -= dt;       // power-up disparo rápido
   if(p.shieldTimer>0) p.shieldTimer -= dt;     // power-up escudo
+  // ⚠️ Latido de alerta cuando queda 1 vida (se silencia al recuperar vidas)
+  if(state.lives <= 1){
+    state.heartT = (state.heartT||0) - dt;
+    if(state.heartT <= 0){ sfxHeartbeat(); state.heartT = 1.1; }
+  } else { state.heartT = 0; }
   // Disparo continuo: teclado (espacio/arriba) o autofuego táctil
   if(state.keys['ArrowUp'] || state.keys[' '] || state.autofire) tryFire();
 
@@ -2157,6 +2222,7 @@ function defeatBoss(){
   addShake(12, 0.6);
   addFlash('#ffd100', 0.45);
   sfxBossDie();
+  setTimeout(sfxWhine, 220);   // 😼 quejido gracioso del villano derrotado
   state.boss=null;
   // ¿Era el ÚLTIMO villano (Gustavo Petro)? Entonces se gana el juego.
   if(state.worlds >= ENEMY_TYPES.length){
