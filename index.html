@@ -267,6 +267,7 @@
     <div id="winScreen" class="overlay hidden">
       <h2 style="color:var(--good)" data-i18n="winTitle">🎉 ¡GANASTE! 🇨🇴</h2>
       <p id="winMsg"></p>
+      <p id="winNet" style="font-size:12px;opacity:.85;margin:2px 0;"></p>
       <img id="winImg" alt="Abelardo y José Manuel — campaña" style="display:none;max-width:100%;max-height:34vh;border-radius:12px;border:2px solid var(--accent);margin:6px 0;">
       <div class="share" data-ctx="win">
         <span class="share-lbl" data-i18n="shareWin">Compartir tu logro:</span>
@@ -366,6 +367,7 @@ const STR = {
       '¡Vamos firmes por la patria! 🐯🫡<br><br>Puntaje: <b style="color:var(--good)">'+sc+'</b> · Mundos: <b>'+w+'</b>',
     cheatOn:'🐯 ¡MODO TIGRE ACTIVADO!', cheatSub:'Armas, escudo y vidas al doble 🫡', combo:'COMBO',
     world:'MUNDO', bossOfWorld:(n)=>'Jefe del mundo: '+n+' 💀', onFire:'🔥 ¡EN LLAMAS! 🔥', card:'🖼️ ¡Comparte tu tarjeta de puntaje!',
+  savedOk:'✅ ¡Guardado en el récord universal!', saveFail:(e)=>'⚠️ No se pudo guardar en línea'+(e?(' ('+e+')'):''),
     speakWin:'¡Ganaste salvando a Colombia! Marca la X por el Tigre y José Manuel este 21 de junio. ¡Firmes por la patria!',
     copied:'¡Copiado! Pégalo donde quieras. 🐯🇨🇴',
     shareWinTxt:(sc,w)=>'¡Gané Salva a Colombia con el Tigre y JoseManuel! 🐯🇨🇴 Puntaje: '+sc+' · Mundos: '+w+'. ¡Firmes por la patria! 🫡',
@@ -413,6 +415,7 @@ const STR = {
       'Firm for the homeland! 🐯🫡<br><br>Score: <b style="color:var(--good)">'+sc+'</b> · Worlds: <b>'+w+'</b>',
     cheatOn:'🐯 TIGER MODE ON!', cheatSub:'Weapons, shield & lives doubled 🫡', combo:'COMBO',
     world:'WORLD', bossOfWorld:(n)=>'World boss: '+n+' 💀', onFire:'🔥 ON FIRE! 🔥', card:'🖼️ Share your score card!',
+  savedOk:'✅ Saved to the world record!', saveFail:(e)=>'⚠️ Could not save online'+(e?(' ('+e+')'):''),
     speakWin:'You won and saved Colombia! Vote the X for the Tiger and José Manuel this June 21. Firm for the homeland!',
     copied:'Copied! Paste it anywhere. 🐯🇨🇴',
     shareWinTxt:(sc,w)=>'I beat Save Colombia with the Tiger & JoseManuel! 🐯🇨🇴 Score: '+sc+' · Worlds: '+w+'. Firm for the homeland! 🫡',
@@ -476,6 +479,7 @@ const overMsg     = document.getElementById('overMsg');
 const winScreen   = document.getElementById('winScreen');
 const winMsg      = document.getElementById('winMsg');
 const winImg      = document.getElementById('winImg');
+const winNet      = document.getElementById('winNet');
 const winAgainBtn = document.getElementById('winAgainBtn');
 const hPlayer = document.getElementById('hPlayer');
 const hWorld  = document.getElementById('hWorld');
@@ -567,18 +571,25 @@ function mergeGlobal(list){
   });
   return Object.values(best).sort((a,b)=> b.score - a.score).slice(0,50);
 }
-// Inserta el puntaje del jugador y devuelve el Top 15 actualizado
+// Inserta el puntaje del jugador y devuelve el Top (o null si falla, dejando
+// el detalle del error en state.netError para poder diagnosticar).
 function submitGlobalScore(name, score, worlds){
   if(!onlineEnabled()) return Promise.resolve(null);
+  state.netError = '';
   const body = JSON.stringify({ name:safeName(name), score:safeInt(score,1e9), worlds:safeInt(worlds,9999) });
   return fetch(SUPABASE_URL + '/rest/v1/scores', {
       method:'POST',
       headers:sbHeaders({ 'Content-Type':'application/json', 'Prefer':'return=minimal' }),
       body
     })
-    .then(()=> fetchGlobalScores())     // re-lee el ranking ya con tu puntaje
-    .then(list=> mergeGlobal(list||[]))
-    .catch(()=> null);
+    .then(r=>{
+      if(!r.ok){
+        return r.text().then(t=>{ state.netError = 'HTTP '+r.status+(t?(' · '+t.slice(0,140)):''); return null; },
+                             ()=>{ state.netError = 'HTTP '+r.status; return null; });
+      }
+      return fetchGlobalScores().then(list=> mergeGlobal(list||[]));   // re-lee con tu puntaje
+    })
+    .catch(err=>{ state.netError = (err && err.message) || 'sin conexión'; return null; });
 }
 // Pinta el récord universal (o un mensaje si no hay datos)
 function renderGlobalScores(list, hiName, hiScore){
@@ -616,7 +627,7 @@ const state = {
   popups:[], banner:null, shakeT:0, shakeMag:0,
   keys:{}, fireCooldown:0, lastTime:0, formationDir:1, formationT:0,
   spawnFlash:0, invuln:0, paused:false, autofire:false, cheat:false,
-  combo:0, comboTimer:0, flashT:0, flashColor:'#fff', bonus:null
+  combo:0, comboTimer:0, flashT:0, flashColor:'#fff', bonus:null, netError:''
 };
 
 // ---------- Campo de estrellas (fondo) ----------
@@ -1987,8 +1998,14 @@ function winGame(){
   sfxFanfare();
   setTimeout(sfxFanfare, 700);
   speak(TR.speakWin);
-  // registra el puntaje en el récord universal (no en modo prueba)
-  if(onlineEnabled() && !TEST_MODE) submitGlobalScore(state.playerName, finalScore, worlds);
+  // registra el puntaje en el récord universal (no en modo prueba) y avisa
+  if(winNet) winNet.textContent = '';
+  if(onlineEnabled() && !TEST_MODE){
+    if(winNet) winNet.textContent = '⏳…';
+    submitGlobalScore(state.playerName, finalScore, worlds).then(list=>{
+      if(winNet) winNet.textContent = list ? TR.savedOk : TR.saveFail(state.netError);
+    });
+  }
 }
 
 // Gritos de batalla / campaña de los Tigres (se elige uno al azar al ganar).
@@ -2215,7 +2232,10 @@ function endGame(won){
     // en modo prueba no se envía (solo lectura); el hack JonaOsorio sí registra
     const p = TEST_MODE ? fetchGlobalScores().then(l=> mergeGlobal(l||[]))
                         : submitGlobalScore(state.playerName, finalScore, worlds);
-    p.then(glist=> renderGlobalScores(glist, state.playerName, finalScore));
+    p.then(glist=>{
+      if(glist===null){ globalList.innerHTML = '<div class="empty">'+TR.saveFail(state.netError)+'</div>'; }
+      else renderGlobalScores(glist, state.playerName, finalScore);
+    });
   } else {
     renderGlobalScores([], state.playerName, finalScore);
   }
