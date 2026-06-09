@@ -523,8 +523,6 @@ const rankScreen     = document.getElementById('rankScreen');
 const rankBackBtn    = document.getElementById('rankBackBtn');
 const rankGlobalBoard= document.getElementById('rankGlobalBoard');
 const rankGlobalList = document.getElementById('rankGlobalList');
-const rankLocalList  = document.getElementById('rankLocalList');
-const scoreList   = document.getElementById('scoreList');
 const globalBoard = document.getElementById('globalBoard');
 const globalList  = document.getElementById('globalList');
 const overTitle   = document.getElementById('overTitle');
@@ -634,10 +632,6 @@ function renderList(ol, entries, emptyMsg, hiName, hiScore){
     ol.appendChild(li);
   });
 }
-// Pinta el Top 5 local
-function renderScores(highlightName, highlightScore){
-  renderList(scoreList, loadScores(), TR.emptyLocal, highlightName, highlightScore);
-}
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -736,9 +730,10 @@ const state = {
   player:null, bullets:[], enemyBullets:[], enemies:[], particles:[], stars:[],
   powerups:[], boss:null, worlds:0, nextWaveDelay:0, advancing:false,
   popups:[], banner:null, shakeT:0, shakeMag:0,
-  keys:{}, fireCooldown:0, lastTime:0, formationDir:1, formationT:0,
-  spawnFlash:0, invuln:0, paused:false, autofire:false, cheat:false,
-  combo:0, comboTimer:0, flashT:0, flashColor:'#fff', bonus:null, netError:''
+  keys:{}, lastTime:0, formationDir:1, formationT:0,
+  invuln:0, paused:false, autofire:false, cheat:false,
+  combo:0, comboTimer:0, flashT:0, flashColor:'#fff', bonus:null, netError:'',
+  heartT:0
 };
 
 // ---------- Campo de estrellas (fondo) ----------
@@ -1942,7 +1937,6 @@ function update(dt){
 
   // disparos del jugador
   for(const b of state.bullets){ b.x += (b.vx||0)*dt; b.y += b.vy*dt; }
-  state.bullets = state.bullets.filter(b=> b.y > -10);
 
   // movimiento de la formación enemiga
   state.formationT += dt;
@@ -2033,7 +2027,6 @@ function update(dt){
       }
     }
   }
-  state.bullets = state.bullets.filter(b=> b.y > -10);
 
   // colisiones: disparos del jugador contra el jefe
   if(state.boss && state.boss.alive){
@@ -2045,7 +2038,6 @@ function update(dt){
         if(bo.hp<=0){ defeatBoss(); break; }
       }
     }
-    state.bullets = state.bullets.filter(b=> b.y > -10);
   }
 
   // colisiones: disparos del jugador contra la nave bonus
@@ -2064,8 +2056,10 @@ function update(dt){
         break;
       }
     }
-    state.bullets = state.bullets.filter(b=> b.y > -10);
   }
+  // un solo filtrado por cuadro: quita los disparos que salieron por arriba o
+  // ya impactaron (marcados con y=-999), evitando crear varios arreglos.
+  state.bullets = state.bullets.filter(b=> b.y > -10);
 
   // colisiones contra el jugador (el escudo o la invulnerabilidad lo protegen)
   if(!isProtected()){
@@ -2268,31 +2262,6 @@ function winGame(){
   }
 }
 
-// Gritos de batalla / campaña de los Tigres (se elige uno al azar al ganar).
-// Frases en la línea de los "Defensores de la Patria" — espíritu de tigre,
-// patria y unidad (no son citas textuales de nadie).
-const TIGER_CRIES = [
-  '¡POR LA PATRIA, MILAGRO! 🙏🐯',
-  '¡FIRMES POR LA PATRIA! 🫡',
-  '¡EL TIGRE RUGE POR COLOMBIA! 🐯🇨🇴',
-  '¡DEFENSORES DE LA PATRIA, DE PIE! 🛡️🇨🇴',
-  '¡COLOMBIA SE RESPETA, CARAJO! 🇨🇴',
-  '¡FUERZA, FE Y PATRIA! 🙏🐯',
-  '¡NI UN PASO ATRÁS! 🫡',
-  '¡GARRA Y CORAZÓN POR COLOMBIA! 🐯❤️',
-  '¡LOS TIGRES NO SE RINDEN! 🐯🔥',
-  '¡DESPERTÓ EL TIGRE QUE LLEVAS DENTRO! 🐯',
-  '¡CON LA PATRIA NO SE JUEGA! 🇨🇴',
-  '¡ABELARDO Y JOSEMANUEL, FIRMES! 🐯🤝',
-  '¡SALVAMOS A COLOMBIA, UNO A UNO! 🇨🇴',
-  '¡EL QUE NO SALTA ES DEL PARTO! 😼',
-  '¡MÁS TIGRE QUE NUNCA! 🐯🔥',
-  '¡PATRIA, FAMILIA Y LIBERTAD! 🇨🇴🙏',
-  '¡RUGE COLOMBIA, RUGE! 🐯',
-  '¡UNIDOS SOMOS UNA MANADA! 🐯🐯🐯',
-  '¡HONOR Y PATRIA SIEMPRE! 🫡🇨🇴',
-  '¡VAMOS QUE VAMOS, MI COMANDANTE! 🐯'
-];
 // Celebración al ganar un mundo (derrotar a un jefe): tigres, banderas y grito
 function celebrateWorld(bossType){
   const cry  = TR.cries[Math.floor(Math.random()*TR.cries.length)];
@@ -2505,14 +2474,18 @@ function endGame(won){
 // ========================================================
 //  DIBUJADO (RENDER)
 // ========================================================
+let _bgHue = -1, _bgGrad = null;   // gradiente de fondo cacheado por mundo
 function render(){
   ctx.clearRect(0,0,W,H);
-  // fondo con color de ambiente según el mundo
+  // fondo con color de ambiente según el mundo (se recalcula solo al cambiar)
   const hue = worldHue();
-  const bg = ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0, 'hsl('+hue+',60%,9%)');
-  bg.addColorStop(1, '#02030a');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  if(hue !== _bgHue || !_bgGrad){
+    _bgHue = hue;
+    _bgGrad = ctx.createLinearGradient(0,0,0,H);
+    _bgGrad.addColorStop(0, 'hsl('+hue+',60%,9%)');
+    _bgGrad.addColorStop(1, '#02030a');
+  }
+  ctx.fillStyle = _bgGrad; ctx.fillRect(0,0,W,H);
   // sacudida de pantalla: desplaza todo el "mundo" unos píxeles
   ctx.save();
   if(state.shakeT>0){
