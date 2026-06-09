@@ -278,6 +278,7 @@
         <button class="shareBtn cp" id="winCardBtn" data-i18n="card">🖼️ Tarjeta</button>
       </div>
       <button id="winAgainBtn" class="secondary" data-i18n="again">JUGAR DE NUEVO 🔁</button>
+      <button id="winRankBtn" class="secondary" data-i18n="seeRanking">🏆 Ver ranking</button>
     </div>
 
     <!-- RANKING (desde el menú) -->
@@ -366,6 +367,32 @@ const STR = {
       'Ahora tu paso para salvarla es <b>marcar la X sobre el Tigre y José Manuel</b> este <b>21 de junio</b>.<br>'+
       '¡Vamos firmes por la patria! 🐯🫡<br><br>Puntaje: <b style="color:var(--good)">'+sc+'</b> · Mundos: <b>'+w+'</b>',
     cheatOn:'🐯 ¡MODO TIGRE ACTIVADO!', cheatSub:'Armas, escudo y vidas al doble 🫡', combo:'COMBO',
+    pioneerTitle:'🎁 ¡REGALO DE PIONERO!',
+    pioneerGifts:[
+      '❤️ +3 vidas extra · ¡gracias por estar desde el inicio!',
+      '🔫 Arma al máximo (Lv.5) · honor a los pioneros 🐯',
+      '🛡️ Escudo reforzado · la patria te protege 🇨🇴',
+      '⚡ Disparo rápido prolongado · ¡a rugir!',
+      '✨ Invencibilidad de arranque · eres leyenda',
+      '💰 +50.000 puntos de regalo · por pionero 🏆',
+      '🐯 Modo Tigre relámpago · arma, escudo y velocidad',
+      '❤️🔫 +2 vidas y arma Lv.4 · combo de pionero',
+      '🛡️⚡ Escudo + disparo rápido · doble bendición',
+      '🌟 Combo dorado · arma Lv.4 y +25.000 puntos',
+    ],
+    jhannyxTitle:'🌟 ¡GRACIAS, JHANNYX! 🌟',
+    jhannyxGifts:[
+      '🐯💎 Modo Tigre Diamante · arma máx, escudo y +2 vidas · ¡por tus ideas!',
+      '❤️❤️❤️ +5 vidas · la manada te cuida 🐯',
+      '💰 +100.000 puntos · genia de las ideas 💡',
+      '🛡️ Escudo de campeona + arma máx · ¡imparable!',
+      '⚡ Disparo ultrarrápido + arma máx · ¡a rugir!',
+      '✨ Invencibilidad extendida + arma máx · eres leyenda',
+      '🌟 Combo legendario · arma máx, +50.000 pts y +2 vidas',
+      '🐯 Manada de tigres · +4 vidas y escudo · ¡firmes!',
+      '💎 Arsenal completo · arma, escudo, velocidad e invencibilidad',
+      '🏆 Homenaje especial · +3 vidas, +75.000 pts, arma máx y escudo',
+    ],
     world:'MUNDO', bossOfWorld:(n)=>'Jefe del mundo: '+n+' 💀', onFire:'🔥 ¡EN LLAMAS! 🔥', card:'🖼️ ¡Comparte tu tarjeta de puntaje!',
   savedOk:'✅ ¡Guardado en el récord universal!', saveFail:(e)=>'⚠️ No se pudo guardar en línea'+(e?(' ('+e+')'):''),
     speakWin:'¡Ganaste salvando a Colombia! Marca la X por el Tigre y José Manuel este 21 de junio. ¡Firmes por la patria!',
@@ -414,6 +441,32 @@ const STR = {
       'Now your move to save it: <b>vote the X for the Tiger and José Manuel</b> this <b>June 21</b>.<br>'+
       'Firm for the homeland! 🐯🫡<br><br>Score: <b style="color:var(--good)">'+sc+'</b> · Worlds: <b>'+w+'</b>',
     cheatOn:'🐯 TIGER MODE ON!', cheatSub:'Weapons, shield & lives doubled 🫡', combo:'COMBO',
+    pioneerTitle:'🎁 PIONEER GIFT!',
+    pioneerGifts:[
+      '❤️ +3 extra lives · thanks for being here from day one!',
+      '🔫 Max weapon (Lv.5) · honor to the pioneers 🐯',
+      '🛡️ Reinforced shield · the homeland protects you 🇨🇴',
+      '⚡ Extended rapid fire · let it roar!',
+      '✨ Start-up invincibility · you are a legend',
+      '💰 +50,000 bonus points · for being a pioneer 🏆',
+      '🐯 Lightning Tiger Mode · weapon, shield & speed',
+      '❤️🔫 +2 lives and Lv.4 weapon · pioneer combo',
+      '🛡️⚡ Shield + rapid fire · double blessing',
+      '🌟 Golden combo · Lv.4 weapon and +25,000 points',
+    ],
+    jhannyxTitle:'🌟 THANK YOU, JHANNYX! 🌟',
+    jhannyxGifts:[
+      '🐯💎 Diamond Tiger Mode · max weapon, shield & +2 lives · for your ideas!',
+      '❤️❤️❤️ +5 lives · the pack has your back 🐯',
+      '💰 +100,000 points · idea genius 💡',
+      '🛡️ Champion shield + max weapon · unstoppable!',
+      '⚡ Ultra rapid fire + max weapon · let it roar!',
+      '✨ Extended invincibility + max weapon · you are a legend',
+      '🌟 Legendary combo · max weapon, +50,000 pts & +2 lives',
+      '🐯 Tiger pack · +4 lives and shield · stand firm!',
+      '💎 Full arsenal · weapon, shield, speed & invincibility',
+      '🏆 Special tribute · +3 lives, +75,000 pts, max weapon & shield',
+    ],
     world:'WORLD', bossOfWorld:(n)=>'World boss: '+n+' 💀', onFire:'🔥 ON FIRE! 🔥', card:'🖼️ Share your score card!',
   savedOk:'✅ Saved to the world record!', saveFail:(e)=>'⚠️ Could not save online'+(e?(' ('+e+')'):''),
     speakWin:'You won and saved Colombia! Vote the X for the Tiger and José Manuel this June 21. Firm for the homeland!',
@@ -481,6 +534,7 @@ const winMsg      = document.getElementById('winMsg');
 const winImg      = document.getElementById('winImg');
 const winNet      = document.getElementById('winNet');
 const winAgainBtn = document.getElementById('winAgainBtn');
+const winRankBtn  = document.getElementById('winRankBtn');
 const hPlayer = document.getElementById('hPlayer');
 const hWorld  = document.getElementById('hWorld');
 const hLevel  = document.getElementById('hLevel');
@@ -490,6 +544,57 @@ const hLives  = document.getElementById('hLives');
 // ---------- Mejores puntajes (almacenados en localStorage) ----------
 const LS_KEY = 'salvaAColombia_top5';
 const LS_NAME = 'salvaAColombia_nombre';   // recuerda el último nombre usado
+const LS_PIONEER = 'salvaAColombia_pionero'; // rota el regalo de pionero por ingreso
+const LS_JHANNYX = 'salvaAColombia_jhannyx'; // rota el regalo VIP de Jhannyx
+
+// 🎁 PIONEROS: los primeros jugadores del ranking. Reciben un regalo distinto
+// en cada partida (Easter egg). Comparación sin distinguir mayúsculas/acentos.
+const PIONEERS = ['jhannyx','mathias','nithioso','jonathan','robertico','jesica',
+  'sote tigre','jhonny leandro','pepe','cristianp','pablo'];
+function isPioneer(name){
+  return PIONEERS.indexOf(String(name||'').trim().toLowerCase()) !== -1;
+}
+// 🌟 Jhannyx: colaboradora estrella (nos ha dado grandes ideas). Recibe un
+// trato VIP con regalos premium y un anuncio especial al entrar.
+function isJhannyx(name){
+  return String(name||'').trim().toLowerCase() === 'jhannyx';
+}
+// Aplica el regalo VIP de Jhannyx número i (0..9): más generosos que los de pionero
+function applyJhannyxGift(i){
+  const p = state.player;
+  switch(i){
+    case 0: p.weapon=5; p.shieldTimer=40; state.invuln=Math.max(state.invuln,6); state.lives+=2; break; // Tigre Diamante
+    case 1: state.lives += 5; break;                                            // +5 vidas
+    case 2: state.score += 100000; break;                                       // +100.000 puntos
+    case 3: p.weapon=5; p.shieldTimer=Math.max(p.shieldTimer,45); break;        // escudo de campeona
+    case 4: p.weapon=5; p.rapidTimer=Math.max(p.rapidTimer,40); break;          // disparo ultrarrápido
+    case 5: p.weapon=5; state.invuln=Math.max(state.invuln,12); break;          // invencibilidad extendida
+    case 6: p.weapon=5; state.score+=50000; state.lives+=2; break;              // combo legendario
+    case 7: state.lives+=4; p.shieldTimer=Math.max(p.shieldTimer,30); break;    // manada de tigres
+    case 8: p.weapon=5; p.shieldTimer=Math.max(p.shieldTimer,30);
+            p.rapidTimer=Math.max(p.rapidTimer,30); state.invuln=Math.max(state.invuln,6); break; // arsenal completo
+    case 9: state.lives+=3; state.score+=75000; p.weapon=5;
+            p.shieldTimer=Math.max(p.shieldTimer,25); break;                    // homenaje pionero
+  }
+}
+// Aplica el regalo de pionero número i (0..9) al estado/jugador actual
+function applyPioneerGift(i){
+  const p = state.player;
+  switch(i){
+    case 0: state.lives += 3; break;                                            // +3 vidas
+    case 1: p.weapon = 5; break;                                                // arma al máximo
+    case 2: p.shieldTimer = Math.max(p.shieldTimer, 25); break;                 // escudo reforzado
+    case 3: p.rapidTimer  = Math.max(p.rapidTimer, 25); break;                  // disparo rápido
+    case 4: state.invuln  = Math.max(state.invuln, 8); break;                   // invencibilidad de arranque
+    case 5: state.score  += 50000; break;                                       // puntos de regalo
+    case 6: p.weapon = 5; p.shieldTimer = Math.max(p.shieldTimer,15);
+            p.rapidTimer = Math.max(p.rapidTimer,15); break;                    // Modo Tigre relámpago
+    case 7: state.lives += 2; p.weapon = Math.max(p.weapon,4); break;           // +2 vidas y arma Lv.4
+    case 8: p.shieldTimer = Math.max(p.shieldTimer,15);
+            p.rapidTimer  = Math.max(p.rapidTimer,15); break;                   // escudo + disparo rápido
+    case 9: p.weapon = Math.max(p.weapon,4); state.score += 25000; break;       // combo dorado
+  }
+}
 // Saneadores: TODO dato que venga de localStorage o de la red se normaliza a
 // tipos seguros (entero acotado / texto corto) para evitar inyecciones.
 function safeInt(v, max){
@@ -599,6 +704,7 @@ function renderGlobalScores(list, hiName, hiScore){
 }
 
 // ---------- Pantalla de RANKING (desde el menú) ----------
+let rankReturn = null;   // a qué pantalla volver al cerrar el ranking
 function showRanking(){
   rankGlobalBoard.style.display = '';
   if(onlineEnabled()){
@@ -607,12 +713,17 @@ function showRanking(){
   } else {
     renderList(rankGlobalList, [], TR.emptyGlobal);
   }
-  startScreen.classList.add('hidden');
+  // Recuerda desde dónde se abrió para volver allí (victoria, fin o menú)
+  rankReturn = !winScreen.classList.contains('hidden') ? winScreen
+             : !overScreen.classList.contains('hidden') ? overScreen
+             : startScreen;
+  rankReturn.classList.add('hidden');
   rankScreen.classList.remove('hidden');
 }
 function hideRanking(){
   rankScreen.classList.add('hidden');
-  startScreen.classList.remove('hidden');
+  (rankReturn || startScreen).classList.remove('hidden');
+  rankReturn = null;
 }
 
 // ⚠️ MODO PRUEBA: casi invencible y enemigos flojos para llegar al final y
@@ -1561,6 +1672,25 @@ function startGame(name){
     state.player.shieldTimer = 1e9;   // escudo permanente (doble)
     state.invuln = Math.max(state.invuln, 3);
   }
+  // 🎁 Easter egg de PIONEROS: si eres uno de los primeros jugadores, recibes
+  // un regalo DISTINTO en cada ingreso (rota 0..9 y se recuerda el siguiente).
+  // Jhannyx (colaboradora estrella) tiene su propio set VIP con anuncio especial.
+  state.pioneerGift = null; state.jhannyxGift = null;
+  if(isJhannyx(name)){
+    let gi = 0;
+    try { gi = parseInt(localStorage.getItem(LS_JHANNYX)||'0', 10) || 0; } catch(e){}
+    gi = ((gi % 10) + 10) % 10;
+    applyJhannyxGift(gi);
+    state.jhannyxGift = gi;
+    try { localStorage.setItem(LS_JHANNYX, String((gi+1) % 10)); } catch(e){}
+  } else if(isPioneer(name)){
+    let gi = 0;
+    try { gi = parseInt(localStorage.getItem(LS_PIONEER)||'0', 10) || 0; } catch(e){}
+    gi = ((gi % 10) + 10) % 10;
+    applyPioneerGift(gi);
+    state.pioneerGift = gi;
+    try { localStorage.setItem(LS_PIONEER, String((gi+1) % 10)); } catch(e){}
+  }
   state.paused = false; state.autofire = false; pointerActive = false;
   initStars();
   buildWave(state.level);
@@ -1568,6 +1698,16 @@ function startGame(name){
   updateHUD();
   // guiño del hack: si está activo, anúncialo (encima del cartel de nivel)
   if(state.cheat){ showBanner(TR.cheatOn, '#ffd100', 26, 2.6, TR.cheatSub); addFlash('#ffd100', 0.5); }
+  // guiño de pionero: anuncia el regalo de esta partida
+  if(state.pioneerGift!=null){
+    showBanner(TR.pioneerTitle, '#43d9ff', 24, 3.2, TR.pioneerGifts[state.pioneerGift]);
+    addFlash('#43d9ff', 0.5);
+  }
+  // anuncio VIP para Jhannyx (colaboradora estrella)
+  if(state.jhannyxGift!=null){
+    showBanner(TR.jhannyxTitle, '#ff5fd2', 24, 3.6, TR.jhannyxGifts[state.jhannyxGift]);
+    addFlash('#ff5fd2', 0.6);
+  }
   startScreen.classList.add('hidden');
   overScreen.classList.add('hidden');
   pauseScreen.classList.add('hidden');
@@ -2451,6 +2591,7 @@ startBtn.addEventListener('click', beginFromInput);
 nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter') beginFromInput(); });
 againBtn.addEventListener('click', ()=> startGame(state.playerName||'Anónimo'));
 winAgainBtn.addEventListener('click', ()=> startGame(state.playerName||'Anónimo'));
+winRankBtn.addEventListener('click', showRanking);
 
 // ---------- Compartir en redes ----------
 const SHARE_URL = 'https://nithioso.github.io/SalvaAcolombia/';
