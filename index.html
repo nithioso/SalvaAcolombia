@@ -1988,7 +1988,7 @@ function winGame(){
   setTimeout(sfxFanfare, 700);
   speak(TR.speakWin);
   // registra el puntaje en el récord universal (no en modo prueba)
-  if(onlineEnabled() && !TEST_MODE && !state.cheat) submitGlobalScore(state.playerName, finalScore, worlds);
+  if(onlineEnabled() && !TEST_MODE) submitGlobalScore(state.playerName, finalScore, worlds);
 }
 
 // Gritos de batalla / campaña de los Tigres (se elige uno al azar al ganar).
@@ -2212,8 +2212,8 @@ function endGame(won){
   globalBoard.style.display = '';
   if(onlineEnabled()){
     globalList.innerHTML = '<div class="empty">'+TR.loadingGlobal+'</div>';
-    // no se envían puntajes en modo prueba ni con el hack (ranking justo)
-    const p = (TEST_MODE || state.cheat) ? fetchGlobalScores().then(l=> mergeGlobal(l||[]))
+    // en modo prueba no se envía (solo lectura); el hack JonaOsorio sí registra
+    const p = TEST_MODE ? fetchGlobalScores().then(l=> mergeGlobal(l||[]))
                         : submitGlobalScore(state.playerName, finalScore, worlds);
     p.then(glist=> renderGlobalScores(glist, state.playerName, finalScore));
   } else {
