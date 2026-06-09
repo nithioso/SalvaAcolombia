@@ -37,11 +37,14 @@ personajes del **Parto Histérico** antes de que aterricen.
 - **Arma mejorable + power-ups:** empiezas con **arma nivel 2** y la subes hasta
   **nivel 5** recogiendo **⬆** (más disparos a la vez). Otros power-ups:
   **⚡ disparo rápido**, **🛡️ escudo** temporal y **♥ vida extra**.
-- **Música, efectos y voz:** banda sonora procedimental, efectos de sonido,
-  **fanfarria de victoria**, un **🐯 rugido de tigre** sintetizado (al aparecer
-  un jefe, al conquistar un mundo, al ganar y al activar el Modo Tigre) y una
-  **voz** que grita el lema al ganar un mundo (si el navegador lo soporta).
-  Botón 🔊 para silenciar (preferencia recordada).
+- **Música, efectos y voz:** banda sonora procedimental que **evoluciona por
+  mundo** (cambia de tono/timbre y **acelera el tempo** para dar tensión),
+  efectos de sonido, **fanfarria de victoria**, un **🐯 rugido de tigre**
+  sintetizado (al aparecer un jefe, al conquistar un mundo, al ganar y al
+  activar el Modo Tigre), **disparo con "zarpazo" felino**, un **😼 quejido
+  gracioso** del villano al ser derrotado, un **⚠️ latido de alerta** cuando
+  queda 1 vida y una **voz** que grita el lema al ganar un mundo (si el
+  navegador lo soporta). Botón 🔊 para silenciar (preferencia recordada).
 - **Detalles:** cada protagonista dispara de un **color distinto** (Abelardo
   dorado, Restrepo azul), contador de **Mundo** en el HUD, y favicon de
   **tigre con la bandera de Colombia** 🐯🇨🇴.
