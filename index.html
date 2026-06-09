@@ -195,6 +195,28 @@
   .shareBtn.fb{background:#1877f2;}
   .shareBtn.cp{background:#2a3060;}
   .shareBtn:active{transform:scale(.96);}
+
+  /* Aviso breve (toast) no bloqueante */
+  #toast{
+    position:absolute;left:50%;bottom:64px;transform:translate(-50%,16px);
+    max-width:88%;padding:10px 16px;border-radius:10px;
+    background:rgba(13,16,36,.96);border:1px solid var(--accent);color:var(--text);
+    font-size:13px;font-weight:600;text-align:center;
+    box-shadow:0 8px 24px rgba(0,0,0,.5);
+    opacity:0;pointer-events:none;z-index:9;
+    transition:opacity .2s, transform .2s;
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0);}
+
+  /* Accesibilidad: foco visible al navegar con teclado */
+  button:focus-visible, input:focus-visible, a:focus-visible{
+    outline:2px solid var(--accent);outline-offset:2px;
+  }
+  /* Respeta a quien prefiere menos movimiento: suaviza transiciones de UI */
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+    button:active{transform:none;}
+  }
 </style>
 </head>
 <body>
@@ -298,13 +320,15 @@
     <div class="stat"><span data-i18n="hudLevel">Nv</span> <b id="hLevel">1</b></div>
     <div class="stat"><span data-i18n="hudPts">Pts</span> <b id="hScore">0</b></div>
     <div class="stat" id="lives"><span id="hLives">♥♥♥</span></div>
-    <button id="muteBtn" title="Silenciar / activar sonido">🔊</button>
-    <button id="pauseBtn" class="hidden" data-i18n="pauseBtn">⏸ Pausa</button>
+    <button id="muteBtn" title="Silenciar / activar sonido" aria-label="Silenciar o activar el sonido">🔊</button>
+    <button id="pauseBtn" class="hidden" data-i18n="pauseBtn" aria-label="Pausar el juego">⏸ Pausa</button>
   </div>
 
   <div id="sig"><span data-i18n="sigPre">Creado con amoor por la patria por</span>
     <a href="https://x.com/NiThiOso" target="_blank" rel="noopener noreferrer">@NiThiOso</a> 🐯🇨🇴
   </div>
+  <!-- Aviso breve no bloqueante (reemplaza a alert para "copiado", etc.) -->
+  <div id="toast" role="status" aria-live="polite" aria-hidden="true"></div>
 </div>
 
 <script>
@@ -538,6 +562,22 @@ const hWorld  = document.getElementById('hWorld');
 const hLevel  = document.getElementById('hLevel');
 const hScore  = document.getElementById('hScore');
 const hLives  = document.getElementById('hLives');
+const toastEl = document.getElementById('toast');
+
+// ¿El usuario prefiere menos movimiento? (suaviza sacudidas y destellos)
+const REDUCED_MOTION = !!(typeof window!=='undefined' && window.matchMedia &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+// Aviso breve no bloqueante (reemplaza a alert para mensajes informativos)
+let _toastTimer = null;
+function showToast(msg){
+  if(!toastEl){ try{ alert(msg); }catch(e){} return; }
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  toastEl.setAttribute('aria-hidden','false');
+  if(_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(()=>{ toastEl.classList.remove('show'); toastEl.setAttribute('aria-hidden','true'); }, 2600);
+}
 
 // ---------- Mejores puntajes (almacenados en localStorage) ----------
 const LS_KEY = 'salvaAColombia_top5';
@@ -1940,15 +1980,17 @@ function update(dt){
 
   // movimiento de la formación enemiga
   state.formationT += dt;
-  const liveEnemies = state.enemies.filter(e=>e.alive);
-  let divers = liveEnemies.filter(e=>e.diving).length;   // picadas en curso
-  // rebote de la formación al tocar los bordes
-  let shift = state.formationDir * d.formSpeed * dt;
-  let willHitEdge=false;
-  for(const e of liveEnemies){
-    if(!e.diving){
+  // Una sola pasada: cuenta enemigos vivos y picadas en curso, y detecta si la
+  // formación tocará un borde (evita crear arreglos intermedios cada cuadro).
+  let liveCount = 0, divers = 0, willHitEdge = false;
+  const shift = state.formationDir * d.formSpeed * dt;
+  for(const e of state.enemies){
+    if(!e.alive) continue;
+    liveCount++;
+    if(e.diving){ divers++; }
+    else {
       const nx = e.baseX + shift;
-      if(nx < 24 || nx > W-24){ willHitEdge=true; break; }
+      if(nx < 24 || nx > W-24) willHitEdge = true;
     }
   }
   if(willHitEdge){ state.formationDir *= -1; }
@@ -1960,7 +2002,7 @@ function update(dt){
       e.x = e.baseX + Math.sin(e.wobble)*3;
       e.y = e.baseY + Math.sin(state.formationT*1.5 + e.col)*4;
       // a veces inicia una picada hacia el jugador (limitando las simultáneas)
-      if(divers < d.maxDivers && Math.random() < d.diveChance && liveEnemies.length>0){
+      if(divers < d.maxDivers && Math.random() < d.diveChance && liveCount>0){
         e.diving=true; e.divePhase=0;
         e.diveStartX=e.x; e.diveStartY=e.y;
         e.diveTargetX = p.x;
@@ -2417,15 +2459,17 @@ function spawnSparks(x,y,color){
 function showBanner(text, color, size, dur, sub){
   state.banner = { text, color: color||'#ffcf33', t: dur||1.6, size: size||30, sub: sub||'' };
 }
-// Sacudida de pantalla (magnitud en px, duración en s)
+// Sacudida de pantalla (magnitud en px, duración en s).
+// Si el usuario prefiere menos movimiento, se atenúa bastante.
 function addShake(mag, dur){
+  if(REDUCED_MOTION) mag *= 0.25;
   state.shakeMag = Math.max(state.shakeMag, mag);
   state.shakeT   = Math.max(state.shakeT, dur);
 }
 // Número de puntaje que sube y se desvanece
 function addPopup(x,y,text){ state.popups.push({ x, y, text, t:0.9 }); }
-// Destello de pantalla (color breve)
-function addFlash(color, dur){ state.flashColor = color||'#fff'; state.flashT = Math.max(state.flashT, dur||0.25); }
+// Destello de pantalla (color breve); atenuado con "menos movimiento"
+function addFlash(color, dur){ state.flashColor = color||'#fff'; state.flashT = Math.max(state.flashT, (dur||0.25) * (REDUCED_MOTION?0.4:1)); }
 // Bloquea los toques del overlay un instante (evita que un dedo que sigue
 // presionado al terminar la partida salte la pantalla y reinicie sin querer).
 function lockOverlay(el, ms){
@@ -2725,7 +2769,7 @@ function shareCard(){
   const dl = ()=>{ try{ const a=document.createElement('a'); a.download='SalvaAColombia.png'; a.href=c.toDataURL('image/png'); a.click(); }catch(e){} };
   const copyAndDownload = (blob)=>{
     if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(msg).then(()=> alert(TR.copied), ()=>{});
+      navigator.clipboard.writeText(msg).then(()=> showToast(TR.copied), ()=>{});
     }
     if(blob){ const a=document.createElement('a'); a.download='SalvaAColombia.png'; a.href=URL.createObjectURL(blob); a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),8000); }
     else dl();
@@ -2757,8 +2801,8 @@ function shareTo(net, ctx){
   else if(net==='facebook') link = 'https://www.facebook.com/sharer/sharer.php?u=' + u + '&quote=' + t;
   else if(net==='copy'){
     if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text+' '+SHARE_URL).then(()=> alert(TR.copied), ()=>{});
-    } else { alert(text+' '+SHARE_URL); }
+      navigator.clipboard.writeText(text+' '+SHARE_URL).then(()=> showToast(TR.copied), ()=>{});
+    } else { alert(text+' '+SHARE_URL); }   // sin portapapeles: el usuario copia a mano
     return;
   }
   if(link) window.open(link, '_blank', 'noopener,noreferrer');
