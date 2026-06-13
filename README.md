@@ -26,7 +26,9 @@ personajes del **Parto Histérico** antes de que aterricen.
 ## ✨ Características
 
 - **Nombre del jugador:** se solicita al iniciar cada partida (se recuerda el
-  último usado).
+  último usado). Si no hay uno guardado, se sugiere **"TigreN"** con un número
+  incremental **controlado** (mira el mayor `TigreN` que ya existe en el récord
+  universal) para que cada jugador nuevo tenga una identidad única y vigente.
 - **Jefes finales y "mundos":** cada **5 niveles** aparece un líder gigante con
   barra de vida que se mueve y lanza ráfagas (se enfurece con poca vida). Al
   derrotarlo **ganas un mundo**: salen **tigres** 🐯 y el lema

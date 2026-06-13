@@ -584,6 +584,7 @@ const LS_KEY = 'salvaAColombia_top5';
 const LS_NAME = 'salvaAColombia_nombre';   // recuerda el último nombre usado
 const LS_PIONEER = 'salvaAColombia_pionero'; // rota el regalo de pionero por ingreso
 const LS_JHANNYX = 'salvaAColombia_jhannyx'; // rota el regalo VIP de Jhannyx
+const LS_TIGRE   = 'salvaAColombia_tigreN';  // último número de "TigreN" usado en este dispositivo
 
 // 🎁 PIONEROS: los primeros jugadores del ranking. Reciben un regalo distinto
 // en cada partida (Easter egg). Comparación sin distinguir mayúsculas/acentos.
@@ -752,6 +753,35 @@ function registerPlayer(name){
       });
     })
     .catch(()=>{});   // si falla, el envío al terminar la partida igual lo registrará
+}
+// Nombre sugerido por defecto: "TigreN" con un número incremental CONTROLADO.
+// Busca el mayor "TigreN" que ya existe en el ranking para que cada jugador
+// nuevo reciba un número único y vigente (no se pisan entre dispositivos).
+function nextTigreLocal(){
+  let n=0; try{ n = parseInt(localStorage.getItem(LS_TIGRE)||'0',10)||0; }catch(e){}
+  return n + 1;
+}
+const TIGRE_RE = /^\s*tigre\s*0*(\d+)\s*$/i;   // reconoce "Tigre7", "tigre 07", etc.
+function fetchMaxTigre(cb){
+  if(!onlineEnabled()) return cb(0);
+  const url = SUPABASE_URL + '/rest/v1/scores?select=name&limit=2000&name=ilike.Tigre*';
+  fetch(url, { headers:sbHeaders(), cache:'no-store' })
+    .then(r=> r.ok ? r.json() : [])
+    .then(rows=>{
+      let mx=0;
+      (rows||[]).forEach(e=>{ const m=TIGRE_RE.exec(e&&e.name); if(m){ const n=parseInt(m[1],10); if(n>mx) mx=n; } });
+      cb(mx);
+    })
+    .catch(()=> cb(0));
+}
+// Recuerda el número de "TigreN" usado para ir incrementando en el dispositivo
+function rememberTigre(name){
+  const m = TIGRE_RE.exec(name); if(!m) return;
+  try{
+    const n = parseInt(m[1],10)||0;
+    const cur = parseInt(localStorage.getItem(LS_TIGRE)||'0',10)||0;
+    localStorage.setItem(LS_TIGRE, String(Math.max(cur, n)));
+  }catch(e){}
 }
 // Pinta el récord universal (o un mensaje si no hay datos)
 function renderGlobalScores(list, hiName, hiScore){
@@ -1816,6 +1846,7 @@ function startGame(name){
   unlockAudio();                                            // habilita el sonido (iOS)
   state.playerName = name;
   try { localStorage.setItem(LS_NAME, name); } catch(e){}   // recuerda el nombre
+  rememberTigre(name);    // si es "TigreN", sube el contador del dispositivo
   registerPlayer(name);   // déjalo en el ranking con 0 desde ya (si no existe)
   state.score = 0; state.level = 1; state.lives = 5;   // más vidas
   state.bullets=[]; state.enemyBullets=[]; state.particles=[];
@@ -2744,11 +2775,15 @@ function idleAnim(now){
 // ========================================================
 //  CONEXIÓN DE LA INTERFAZ (botones y eventos)
 // ========================================================
-// Toma el nombre escrito (o "Anónimo") y comienza la partida
+// Toma el nombre escrito (o el sugerido "TigreN") y comienza la partida
 function beginFromInput(){
-  const name = (nameInput.value||'').trim() || 'Anónimo';
+  const name = (nameInput.value||'').trim() || ('Tigre'+nextTigreLocal());
   startGame(name);
 }
+// Marca si el valor del campo es una sugerencia automática o algo que el
+// usuario escribió (para no sobrescribirle lo suyo al llegar el dato de red).
+let nameSuggested = false;
+nameInput.addEventListener('input', ()=>{ nameSuggested = false; });
 startBtn.addEventListener('click', beginFromInput);
 nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter') beginFromInput(); });
 againBtn.addEventListener('click', ()=> startGame(state.playerName||'Anónimo'));
@@ -2849,10 +2884,27 @@ quitBtn.addEventListener('click', quitToMenu);
 rankBtn.addEventListener('click', showRanking);
 rankBackBtn.addEventListener('click', hideRanking);
 
-// Inicialización: aplica el idioma, precarga el último nombre y la preferencia
-// de sonido, pinta el marcador, enfoca el campo de nombre y arranca el menú.
+// Sugiere un nombre por defecto: el último usado, o "TigreN" con número
+// incremental controlado (consulta el mayor TigreN del ranking para no repetir).
+function applySuggestedName(){
+  let remembered=''; try{ remembered = localStorage.getItem(LS_NAME) || ''; }catch(e){}
+  if(remembered){ nameInput.value = remembered; return; }   // jugador que vuelve: mantiene su identidad
+  const provisional = 'Tigre' + nextTigreLocal();
+  nameInput.value = provisional; nameSuggested = true;
+  try{ nameInput.select(); }catch(e){}
+  // refina con el máximo global (si el usuario aún no ha escrito lo suyo)
+  fetchMaxTigre(maxN=>{
+    if(!nameSuggested) return;
+    const n = Math.max(nextTigreLocal()-1, maxN) + 1;
+    nameInput.value = 'Tigre' + n;
+    try{ if(document.activeElement===nameInput) nameInput.select(); }catch(e){}
+  });
+}
+
+// Inicialización: aplica el idioma, sugiere el nombre y la preferencia de
+// sonido, enfoca el campo de nombre y arranca el menú de fondo.
 applyI18n();
-try { nameInput.value = localStorage.getItem(LS_NAME) || ''; } catch(e){}
+applySuggestedName();
 try { if(localStorage.getItem('salvaAColombia_audio')==='0'){ audio.on=false; muteBtn.textContent='🔇'; } } catch(e){}
 nameInput.focus();
 nameInput.select();
