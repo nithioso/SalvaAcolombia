@@ -730,6 +730,29 @@ function submitGlobalScore(name, score, worlds){
     })
     .catch(err=>{ state.netError = (err && err.message) || 'sin conexión'; return null; });
 }
+// Registra al jugador en el récord universal al EMPEZAR, con 0 puntos, pero
+// SOLO si todavía no existe (así no perdemos a quienes se salen sin terminar).
+// Como el ranking conserva el mejor puntaje por nombre, los inserts posteriores
+// al ganar/perder funcionan como "actualización" sin borrar este registro.
+const _registered = new Set();   // evita reconsultar el mismo nombre por sesión
+function registerPlayer(name){
+  if(!onlineEnabled() || TEST_MODE) return;
+  const safe = safeName(name);
+  if(!safe || _registered.has(safe)) return;
+  _registered.add(safe);
+  const q = SUPABASE_URL + '/rest/v1/scores?select=name&limit=1&name=eq.' + encodeURIComponent(safe);
+  fetch(q, { headers:sbHeaders(), cache:'no-store' })
+    .then(r=> r.ok ? r.json() : null)
+    .then(rows=>{
+      if(!Array.isArray(rows) || rows.length>0) return;   // ya existe (o no se pudo leer): no dupliques
+      return fetch(SUPABASE_URL + '/rest/v1/scores', {
+        method:'POST',
+        headers:sbHeaders({ 'Content-Type':'application/json', 'Prefer':'return=minimal' }),
+        body: JSON.stringify({ name:safe, score:0, worlds:0 })
+      });
+    })
+    .catch(()=>{});   // si falla, el envío al terminar la partida igual lo registrará
+}
 // Pinta el récord universal (o un mensaje si no hay datos)
 function renderGlobalScores(list, hiName, hiScore){
   if(!globalList) return;
@@ -1793,6 +1816,7 @@ function startGame(name){
   unlockAudio();                                            // habilita el sonido (iOS)
   state.playerName = name;
   try { localStorage.setItem(LS_NAME, name); } catch(e){}   // recuerda el nombre
+  registerPlayer(name);   // déjalo en el ranking con 0 desde ya (si no existe)
   state.score = 0; state.level = 1; state.lives = 5;   // más vidas
   state.bullets=[]; state.enemyBullets=[]; state.particles=[];
   state.powerups=[]; state.boss=null; state.worlds=0; state.nextWaveDelay=0; state.advancing=false;
