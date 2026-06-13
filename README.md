@@ -114,8 +114,13 @@ en cualquier hosting estático (Netlify, Vercel, etc.) sin compilación.
 ## 🌐 Récord universal (Supabase)
 
 El **récord universal** está activo con **Supabase**: al terminar cada partida
-el puntaje se envía a una base de datos compartida y se muestra el **🌐 Top 15
+el puntaje se envía a una base de datos compartida y se muestra el **🌐 récord
 global** (mejor puntaje por jugador + mundos conquistados).
+
+Además, **al empezar** una partida el jugador queda registrado con **0 puntos**
+(solo si aún no existe), de modo que **no se pierde el registro** de quienes se
+salen sin terminar. Como el ranking conserva el **mejor puntaje por nombre**,
+los envíos posteriores actúan como actualización sin borrar nada.
 
 Seguridad del marcador:
 
