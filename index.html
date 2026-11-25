@@ -208,6 +208,19 @@
   }
   #toast.show{opacity:1;transform:translate(-50%,0);}
 
+  /* Firma del desarrollador: sutil y fija abajo a la izquierda.
+     Enlace SIN rel="nofollow" a propósito: es un backlink dofollow visible
+     y rastreable que aporta autoridad SEO a nithios.com. */
+  #devby{
+    position:fixed;
+    left:max(8px, env(safe-area-inset-left));
+    bottom:max(5px, env(safe-area-inset-bottom));
+    font-size:9px;letter-spacing:.3px;line-height:1;
+    color:#8b93c4;opacity:.35;
+    text-decoration:none;z-index:4;
+  }
+  #devby:hover, #devby:focus-visible{opacity:.95;text-decoration:underline;}
+
   /* Accesibilidad: foco visible al navegar con teclado */
   button:focus-visible, input:focus-visible, a:focus-visible{
     outline:2px solid var(--accent);outline-offset:2px;
@@ -330,6 +343,9 @@
   <!-- Aviso breve no bloqueante (reemplaza a alert para "copiado", etc.) -->
   <div id="toast" role="status" aria-live="polite" aria-hidden="true"></div>
 </div>
+<!-- Firma del desarrollador (backlink dofollow para el SEO de nithios.com) -->
+<a id="devby" href="https://nithios.com" target="_blank" rel="noopener"
+   title="Nithios — desarrollo de software y tecnología">Desarrollado por nithios.com</a>
 
 <script>
 /* =====================================================================
@@ -516,7 +532,9 @@ function applyI18n(){
 }
 
 const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
+// "let" a propósito: el caché de caras redirige el dibujo a un lienzo fuera
+// de pantalla intercambiando esta variable un instante (ver cachedStamp).
+let ctx = canvas.getContext('2d');
 // Espacio de coordenadas lógico — toda la lógica usa estas medidas fijas.
 // El lienzo se escala según la densidad de píxeles del dispositivo para
 // verse nítido, mientras el CSS lo ajusta de forma responsiva a la pantalla.
@@ -1426,10 +1444,51 @@ function drawSprite(sprite, x, y, r){
   ctx.beginPath(); ctx.arc(x,y,R,0,Math.PI*2); ctx.stroke();
   return true;
 }
+// ---------- Caché de caras (rendimiento) ----------
+// Dibujar una cara implica decenas de trazos y degradados; hacerlo para cada
+// personaje en cada cuadro es lo más caro del render. Aquí cada cara se pinta
+// UNA sola vez en un lienzo fuera de pantalla y luego se estampa con un único
+// drawImage por cuadro. La clave incluye si ya llegó la foto real, así el
+// caché se renueva solo cuando el sprite pasa de ilustración a fotografía.
+const _faceCache = new Map();
+let _faceKeyN = 0;
+const _faceKeys = new WeakMap();   // identidad estable por función/sprite
+function faceKey(o){
+  let k = _faceKeys.get(o);
+  if(k==null){ k = ++_faceKeyN; _faceKeys.set(o, k); }
+  return k;
+}
+// La caja del caché cubre el dibujo más extenso (camiseta hasta +1.9r,
+// insignia hasta ±1.32r, melenas hasta +1.45r) con un pequeño margen.
+const FACE_PAD_X = 1.5, FACE_PAD_TOP = 1.5, FACE_PAD_BOT = 2.1;
+function cachedStamp(key, r, x, y, painter){
+  const scale = Math.min(window.devicePixelRatio || 1, 3);
+  const k = key + ':' + r + ':' + scale;
+  let c = _faceCache.get(k);
+  if(!c){
+    const w = Math.ceil(r * FACE_PAD_X * 2);
+    const h = Math.ceil(r * (FACE_PAD_TOP + FACE_PAD_BOT));
+    const off = document.createElement('canvas');
+    off.width = Math.ceil(w * scale); off.height = Math.ceil(h * scale);
+    const octx = off.getContext('2d');
+    octx.setTransform(scale, 0, 0, scale, 0, 0);
+    const prev = ctx; ctx = octx;                       // redirige el dibujo
+    try{ painter(r * FACE_PAD_X, r * FACE_PAD_TOP, r); }
+    finally{ ctx = prev; }                              // y restaura SIEMPRE
+    c = { cv: off, w, h, ox: r * FACE_PAD_X, oy: r * FACE_PAD_TOP };
+    _faceCache.set(k, c);
+  }
+  ctx.drawImage(c.cv, x - c.ox, y - c.oy, c.w, c.h);
+}
 // Pinta un personaje: usa la foto si está lista, si no la ilustración
 function paintFace(sprite, drawFn, x, y, r){
-  if(sprite && sprite.ready && drawSprite(sprite, x, y, r)) return;
-  drawFn(x, y, r);
+  if(sprite && sprite.ready){
+    cachedStamp('p'+faceKey(sprite), r, x, y, (px,py,rr)=>{
+      if(!drawSprite(sprite, px, py, rr)) drawFn(px, py, rr);
+    });
+  } else {
+    cachedStamp('v'+faceKey(drawFn), r, x, y, drawFn);
+  }
 }
 
 // Distintivo de villano: una calavera en una insignia, en la esquina
@@ -1470,10 +1529,11 @@ function drawSkullBadge(x, y, r){
   ctx.restore();
 }
 
-// Pinta un enemigo (cara + distintivo de calavera de villano)
+// Pinta un enemigo (cara + distintivo de calavera de villano).
+// La insignia también sale del caché: es idéntica para un mismo radio.
 function paintEnemy(type, x, y, r){
   paintFace(type.sprite, type.draw, x, y, r);
-  drawSkullBadge(x, y, r);
+  cachedStamp('badge', r, x, y, drawSkullBadge);
 }
 
 // ========================================================
@@ -2181,7 +2241,6 @@ function update(dt){
       if(dx*dx+dy*dy < (state.boss.r*0.8+p.r)*(state.boss.r*0.8+p.r)) hitPlayer();
     }
   }
-  state.enemyBullets = state.enemyBullets.filter(b=> b.y < H+10 && b.x > -30 && b.x < W+30);
 
   // power-ups que caen: mover, recoger y descartar los que salen de pantalla
   for(const pu of state.powerups){
@@ -2575,7 +2634,7 @@ function endGame(won){
 // ========================================================
 let _bgHue = -1, _bgGrad = null;   // gradiente de fondo cacheado por mundo
 function render(){
-  ctx.clearRect(0,0,W,H);
+  // (sin clearRect: el degradado de fondo es opaco y cubre todo el lienzo)
   // fondo con color de ambiente según el mundo (se recalcula solo al cambiar)
   const hue = worldHue();
   if(hue !== _bgHue || !_bgGrad){
