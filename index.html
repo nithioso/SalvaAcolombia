@@ -208,6 +208,19 @@
   }
   #toast.show{opacity:1;transform:translate(-50%,0);}
 
+  /* Firma del desarrollador: sutil y fija abajo a la izquierda.
+     Enlace SIN rel="nofollow" a propósito: es un backlink dofollow visible
+     y rastreable que aporta autoridad SEO a nithios.com. */
+  #devby{
+    position:fixed;
+    left:max(8px, env(safe-area-inset-left));
+    bottom:max(5px, env(safe-area-inset-bottom));
+    font-size:9px;letter-spacing:.3px;line-height:1;
+    color:#8b93c4;opacity:.35;
+    text-decoration:none;z-index:4;
+  }
+  #devby:hover, #devby:focus-visible{opacity:.95;text-decoration:underline;}
+
   /* Accesibilidad: foco visible al navegar con teclado */
   button:focus-visible, input:focus-visible, a:focus-visible{
     outline:2px solid var(--accent);outline-offset:2px;
@@ -330,6 +343,9 @@
   <!-- Aviso breve no bloqueante (reemplaza a alert para "copiado", etc.) -->
   <div id="toast" role="status" aria-live="polite" aria-hidden="true"></div>
 </div>
+<!-- Firma del desarrollador (backlink dofollow para el SEO de nithios.com) -->
+<a id="devby" href="https://nithios.com" target="_blank" rel="noopener"
+   title="Nithios — desarrollo de software y tecnología">Desarrollado por nithios.com</a>
 
 <script>
 /* =====================================================================
